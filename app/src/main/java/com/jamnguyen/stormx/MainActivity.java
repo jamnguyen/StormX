@@ -1,10 +1,5 @@
 package com.jamnguyen.stormx;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.ListIterator;
-
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.LoaderCallbackInterface;
@@ -14,39 +9,38 @@ import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.hardware.Camera.Size;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
-import android.view.SubMenu;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.WindowManager;
-import android.widget.Toast;
 
-public class MainActivity extends Activity implements CvCameraViewListener2, OnTouchListener {
-    private static final String TAG = "OCVSample::Activity";
+public class MainActivity extends Activity implements CvCameraViewListener2, OnTouchListener
+{
+    private static final String TAG = "StormX: Main";
+    private static final int MENU_ID_BALL_DETECT = 0;
+    private static final int MENU_ID_MULTI_BALL_DETECT = 1;
 
-    private xCameraView mOpenCvCameraView;
-    private List<Size> mResolutionList;
-    private MenuItem[] mEffectMenuItems;
-    private SubMenu mColorEffectsMenu;
-    private MenuItem[] mResolutionMenuItems;
-    private SubMenu mResolutionMenu;
+    private XCameraView m_OpenCvCameraView;
+    private boolean m_tryDetectBall = false;
+    private boolean m_detectMultiBall = false;
+    private MenuItem m_menuDetect;
+    private MenuItem m_menuMultiBall;
 
-    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
+    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this)
+    {
         @Override
         public void onManagerConnected(int status) {
             switch (status) {
                 case LoaderCallbackInterface.SUCCESS:
                 {
                     Log.i(TAG, "OpenCV loaded successfully");
-                    mOpenCvCameraView.enableView();
-                    mOpenCvCameraView.setOnTouchListener(MainActivity.this);
+                    m_OpenCvCameraView.enableView();
+                    m_OpenCvCameraView.setOnTouchListener(MainActivity.this);
                 } break;
                 default:
                 {
@@ -56,31 +50,28 @@ public class MainActivity extends Activity implements CvCameraViewListener2, OnT
         }
     };
 
-    public MainActivity() {
-        Log.i(TAG, "Instantiated new " + this.getClass());
-    }
-
-    /** Called when the activity is first created. */
+    //Android States--------------------------------------------------------------------------------
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         setContentView(R.layout.activity_main);
 
-        mOpenCvCameraView = (xCameraView) findViewById(R.id.activity_java_surface_view);
+        m_OpenCvCameraView = (XCameraView) findViewById(R.id.activity_java_surface_view);
 
-        mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
+        m_OpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
 
-        mOpenCvCameraView.setCvCameraViewListener(this);
+        m_OpenCvCameraView.setCvCameraViewListener(this);
     }
 
     @Override
     public void onPause()
     {
         super.onPause();
-        if (mOpenCvCameraView != null)
-            mOpenCvCameraView.disableView();
+        if (m_OpenCvCameraView != null)
+            m_OpenCvCameraView.disableView();
     }
 
     @Override
@@ -96,87 +87,91 @@ public class MainActivity extends Activity implements CvCameraViewListener2, OnT
         }
     }
 
-    public void onDestroy() {
+    public void onDestroy()
+    {
         super.onDestroy();
-        if (mOpenCvCameraView != null)
-            mOpenCvCameraView.disableView();
+        if (m_OpenCvCameraView != null)
+            m_OpenCvCameraView.disableView();
     }
 
-    public void onCameraViewStarted(int width, int height) {
+    public void onCameraViewStarted(int width, int height)
+    {
     }
 
-    public void onCameraViewStopped() {
+    //Camera handling-------------------------------------------------------------------------------
+    public void onCameraViewStopped()
+    {
     }
 
-    public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-        return inputFrame.rgba();
+    public Mat onCameraFrame(CvCameraViewFrame inputFrame)
+    {
+        if(m_tryDetectBall)
+        {
+            return Detector.circleDectect(inputFrame, m_detectMultiBall);
+        }
+        else
+        {
+            return inputFrame.rgba();
+        }
     }
 
+    //Options Menu----------------------------------------------------------------------------------
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        List<String> effects = mOpenCvCameraView.getEffectList();
-
-        if (effects == null) {
-            Log.e(TAG, "Color effects are not supported by device!");
-            return true;
-        }
-
-        mColorEffectsMenu = menu.addSubMenu("Color Effect");
-        mEffectMenuItems = new MenuItem[effects.size()];
-
-        int idx = 0;
-        ListIterator<String> effectItr = effects.listIterator();
-        while(effectItr.hasNext()) {
-            String element = effectItr.next();
-            mEffectMenuItems[idx] = mColorEffectsMenu.add(1, idx, Menu.NONE, element);
-            idx++;
-        }
-
-        mResolutionMenu = menu.addSubMenu("Resolution");
-        mResolutionList = mOpenCvCameraView.getResolutionList();
-        mResolutionMenuItems = new MenuItem[mResolutionList.size()];
-
-        ListIterator<Size> resolutionItr = mResolutionList.listIterator();
-        idx = 0;
-        while(resolutionItr.hasNext()) {
-            Size element = resolutionItr.next();
-            mResolutionMenuItems[idx] = mResolutionMenu.add(2, idx, Menu.NONE,
-                    Integer.valueOf(element.width).toString() + "x" + Integer.valueOf(element.height).toString());
-            idx++;
-        }
+        //Ball detect menu
+        m_menuDetect = menu.add("BALL DETECT: OFF");
+//        m_menuMultiBall = menu.add("MULTI-BALL TRACKING: OFF");
 
         return true;
     }
 
-    public boolean onOptionsItemSelected(MenuItem item) {
-        Log.i(TAG, "called onOptionsItemSelected; selected item: " + item);
-        if (item.getGroupId() == 1)
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
+        int itemID = item.getItemId();
+
+        if(itemID == MENU_ID_BALL_DETECT)
         {
-            mOpenCvCameraView.setEffect((String) item.getTitle());
-            Toast.makeText(this, mOpenCvCameraView.getEffect(), Toast.LENGTH_SHORT).show();
+            m_tryDetectBall = !m_tryDetectBall;
+
+            if(m_tryDetectBall)
+            {
+                m_menuDetect.setTitle("BALL DETECT: ON");
+            }
+            else
+            {
+                m_menuDetect.setTitle("BALL DETECT: OFF");
+            }
+
         }
-        else if (item.getGroupId() == 2)
-        {
-            int id = item.getItemId();
-            Size resolution = mResolutionList.get(id);
-            mOpenCvCameraView.setResolution(resolution);
-            resolution = mOpenCvCameraView.getResolution();
-            String caption = Integer.valueOf(resolution.width).toString() + "x" + Integer.valueOf(resolution.height).toString();
-            Toast.makeText(this, caption, Toast.LENGTH_SHORT).show();
-        }
+//        else if(itemID == MENU_ID_MULTI_BALL_DETECT)
+//        {
+//            m_detectMultiBall = !m_detectMultiBall;
+//
+//            if(m_detectMultiBall)
+//            {
+//                m_menuMultiBall.setTitle("MULTI-BALL TRACKING: ON");
+//            }
+//            else
+//            {
+//                m_menuMultiBall.setTitle("MULTI-BALL TRACKING: OFF");
+//            }
+//        }
+//
+//        m_menuMultiBall.setTitle("MULTI-BALL TRACKING: ON");
 
         return true;
     }
 
-    @SuppressLint("SimpleDateFormat")
+//    @SuppressLint("SimpleDateFormat")
     @Override
-    public boolean onTouch(View v, MotionEvent event) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
-        String currentDateandTime = sdf.format(new Date());
-        String fileName = Environment.getExternalStorageDirectory().getPath() +
-                "/sample_picture_" + currentDateandTime + ".jpg";
-        mOpenCvCameraView.takePicture(fileName);
-        Toast.makeText(this, fileName + " saved", Toast.LENGTH_SHORT).show();
+    public boolean onTouch(View v, MotionEvent event)
+    {
+//        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+//        String currentDateandTime = sdf.format(new Date());
+//        String fileName = Environment.getExternalStorageDirectory().getPath() +
+//                "/sample_picture_" + currentDateandTime + ".jpg";
+//        mOpenCvCameraView.takePicture(fileName);
+//        Toast.makeText(this, fileName + " saved", Toast.LENGTH_SHORT).show();
         return false;
     }
 }
