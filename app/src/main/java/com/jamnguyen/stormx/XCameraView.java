@@ -12,10 +12,8 @@ import android.hardware.Camera.Size;
 import android.util.AttributeSet;
 import android.util.Log;
 
-public class XCameraView extends JavaCameraView implements PictureCallback
+public class XCameraView extends JavaCameraView
 {
-
-//    private static final String TAG = "Sample::Tutorial3View";
     private String mPictureFileName;
 
     public XCameraView(Context context, AttributeSet attrs) {
@@ -65,24 +63,4 @@ public class XCameraView extends JavaCameraView implements PictureCallback
 //        // PictureCallback is implemented by the current class
 //        mCamera.takePicture(null, null, this);
 //    }
-
-    @Override
-    public void onPictureTaken(byte[] data, Camera camera) {
-//        Log.i(TAG, "Saving a bitmap to file");
-//        // The camera preview was automatically stopped. Start it again.
-//        mCamera.startPreview();
-//        mCamera.setPreviewCallback(this);
-//
-//        // Write the image in a file (in jpeg format)
-//        try {
-//            FileOutputStream fos = new FileOutputStream(mPictureFileName);
-//
-//            fos.write(data);
-//            fos.close();
-//
-//        } catch (java.io.IOException e) {
-//            Log.e("PictureDemo", "Exception in photoCallback", e);
-//        }
-
-    }
 }

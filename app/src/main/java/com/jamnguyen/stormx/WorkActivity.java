@@ -4,11 +4,13 @@ import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
+import org.opencv.imgproc.Imgproc;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -19,17 +21,15 @@ import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.WindowManager;
 
-public class MainActivity extends Activity implements CvCameraViewListener2, OnTouchListener
+public class WorkActivity extends Activity implements CvCameraViewListener2
 {
-    private static final String TAG = "StormX: Main";
-    private static final int MENU_ID_BALL_DETECT = 0;
-    private static final int MENU_ID_MULTI_BALL_DETECT = 1;
+    private XCameraView     m_OpenCvCameraView;
+    private boolean         m_ballDetected = false;
+    private MenuItem        m_menuDetect;
+    private MenuItem        m_menuMultiBall;
 
-    private XCameraView m_OpenCvCameraView;
-    private boolean m_tryDetectBall = false;
-    private boolean m_detectMultiBall = false;
-    private MenuItem m_menuDetect;
-    private MenuItem m_menuMultiBall;
+    private XBluetooth      m_XBluetooth;
+    private XDetector       m_XDetector;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this)
     {
@@ -38,9 +38,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2, OnT
             switch (status) {
                 case LoaderCallbackInterface.SUCCESS:
                 {
-                    Log.i(TAG, "OpenCV loaded successfully");
                     m_OpenCvCameraView.enableView();
-                    m_OpenCvCameraView.setOnTouchListener(MainActivity.this);
+//                    m_OpenCvCameraView.setOnTouchListener(WorkActivity.this);
                 } break;
                 default:
                 {
@@ -57,13 +56,22 @@ public class MainActivity extends Activity implements CvCameraViewListener2, OnT
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_work);
 
+        //Camera
         m_OpenCvCameraView = (XCameraView) findViewById(R.id.activity_java_surface_view);
-
         m_OpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
-
         m_OpenCvCameraView.setCvCameraViewListener(this);
+
+        //Bluetooth
+        Intent newint = getIntent();
+        String address = newint.getStringExtra(SetupActivity.EXTRA_ADDRESS);
+        m_XBluetooth = new XBluetooth(address, getApplicationContext());
+        boolean bluetoothConnected = m_XBluetooth.Init();
+        if(!bluetoothConnected)
+        {
+            finish();
+        }
     }
 
     @Override
@@ -78,11 +86,12 @@ public class MainActivity extends Activity implements CvCameraViewListener2, OnT
     public void onResume()
     {
         super.onResume();
-        if (!OpenCVLoader.initDebug()) {
-            Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
+        if (!OpenCVLoader.initDebug())
+        {
             OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_2_0, this, mLoaderCallback);
-        } else {
-            Log.d(TAG, "OpenCV library found inside package. Using it!");
+        }
+        else
+        {
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
         }
     }
@@ -105,44 +114,53 @@ public class MainActivity extends Activity implements CvCameraViewListener2, OnT
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame)
     {
-        if(m_tryDetectBall)
+        Mat mRgba = inputFrame.rgba();
+
+        mRgba =  m_XDetector.circleDectect(inputFrame);
+        if(m_XDetector.isBallDetected())
         {
-            return Detector.circleDectect(inputFrame, m_detectMultiBall);
+            m_XBluetooth.TurnOnLed();
         }
         else
         {
-            return inputFrame.rgba();
+            m_XBluetooth.TurnOffLed();
         }
+
+        //Transpose
+        Mat mRgbaT = mRgba.t();
+        Core.flip(mRgba.t(), mRgbaT, 1);
+        Imgproc.resize(mRgbaT, mRgbaT, mRgba.size());
+
+        return mRgbaT;
     }
 
     //Options Menu----------------------------------------------------------------------------------
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        //Ball detect menu
-        m_menuDetect = menu.add("BALL DETECT: OFF");
-//        m_menuMultiBall = menu.add("MULTI-BALL TRACKING: OFF");
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        //Ball detect menu
+//        m_menuDetect = menu.add("BALL DETECT: OFF");
+//
+//        return true;
+//    }
 
-        return true;
-    }
-
-    public boolean onOptionsItemSelected(MenuItem item)
-    {
-        int itemID = item.getItemId();
-
-        if(itemID == MENU_ID_BALL_DETECT)
-        {
-            m_tryDetectBall = !m_tryDetectBall;
-
-            if(m_tryDetectBall)
-            {
-                m_menuDetect.setTitle("BALL DETECT: ON");
-            }
-            else
-            {
-                m_menuDetect.setTitle("BALL DETECT: OFF");
-            }
-
-        }
+//    public boolean onOptionsItemSelected(MenuItem item)
+//    {
+//        int itemID = item.getItemId();
+//
+//        if(itemID == MENU_ID_BALL_DETECT)
+//        {
+//            m_tryDetectBall = !m_tryDetectBall;
+//
+//            if(m_tryDetectBall)
+//            {
+//                m_menuDetect.setTitle("BALL DETECT: ON");
+//            }
+//            else
+//            {
+//                m_menuDetect.setTitle("BALL DETECT: OFF");
+//            }
+//
+//        }
 //        else if(itemID == MENU_ID_MULTI_BALL_DETECT)
 //        {
 //            m_detectMultiBall = !m_detectMultiBall;
@@ -158,20 +176,20 @@ public class MainActivity extends Activity implements CvCameraViewListener2, OnT
 //        }
 //
 //        m_menuMultiBall.setTitle("MULTI-BALL TRACKING: ON");
-
-        return true;
-    }
+//
+//        return true;
+//    }
 
 //    @SuppressLint("SimpleDateFormat")
-    @Override
-    public boolean onTouch(View v, MotionEvent event)
-    {
+//    @Override
+//    public boolean onTouch(View v, MotionEvent event)
+//    {
 //        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
 //        String currentDateandTime = sdf.format(new Date());
 //        String fileName = Environment.getExternalStorageDirectory().getPath() +
 //                "/sample_picture_" + currentDateandTime + ".jpg";
 //        mOpenCvCameraView.takePicture(fileName);
 //        Toast.makeText(this, fileName + " saved", Toast.LENGTH_SHORT).show();
-        return false;
-    }
+//        return false;
+//    }
 }

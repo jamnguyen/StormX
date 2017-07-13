@@ -11,9 +11,13 @@ import org.opencv.imgproc.Imgproc;
 
 import static android.content.ContentValues.TAG;
 
-public class Detector
+public class XDetector
 {
-    public static Mat circleDectect(CameraBridgeViewBase.CvCameraViewFrame inputFrame, boolean multiCircle)
+    boolean ballDetected = false;
+    int ballX = -1;
+    int ballY = -1;
+
+    public Mat circleDectect(CameraBridgeViewBase.CvCameraViewFrame inputFrame)
     {
         //To grayscale
         Mat grayInput = inputFrame.gray();
@@ -34,28 +38,48 @@ public class Detector
         //0: Maximum radius to be detected. If unknown, put zero as default
         Imgproc.HoughCircles(grayInput, circles, Imgproc.CV_HOUGH_GRADIENT, 2, grayInput.rows()/8, 200, 100, 0, 0);
 
-        int circleAmount = 1;
-        if(multiCircle)
+        if (circles.cols() > 0)
         {
-            circleAmount = circles.cols();
-        }
-        if (circles.cols() > 0) {
-            for (int x = 0; x < circleAmount; x++) {
-                //Draw circles
-                double circleVec[] = circles.get(0, x);
+            ballDetected = true;
 
-                if (circleVec != null) {
-                    Point center = new Point((int) circleVec[0], (int) circleVec[1]);
-                    int radius = (int) circleVec[2];
+            //Draw circles
+            double circleVec[] = circles.get(0, 0);
 
-                    {
-                        Imgproc.circle(rgbaInput, center, 3, new Scalar(0, 0, 255), 5);
-                        Imgproc.circle(rgbaInput, center, radius, new Scalar(255, 255, 0), 2);
-                    }
+            if (circleVec != null) {
+                Point center = new Point((int) circleVec[0], (int) circleVec[1]);
+                int radius = (int) circleVec[2];
+
+                ballX = (int) circleVec[0];
+                ballY = (int) circleVec[1];
+
+                {
+                    Imgproc.circle(rgbaInput, center, 3, new Scalar(0, 0, 255), 5);
+                    Imgproc.circle(rgbaInput, center, radius, new Scalar(255, 255, 0), 2);
                 }
             }
         }
+        else
+        {
+            ballDetected = false;
+            ballX = -1;
+            ballY = -1;
+        }
 
         return rgbaInput;
+    }
+
+    public boolean isBallDetected()
+    {
+        return ballDetected;
+    }
+
+    public int getBallX()
+    {
+        return ballX;
+    }
+
+    public int getBallY()
+    {
+        return ballY;
     }
 }
