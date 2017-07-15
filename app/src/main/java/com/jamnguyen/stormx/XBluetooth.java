@@ -22,6 +22,8 @@ public class XBluetooth
     private BluetoothAdapter    m_BTAdapter = null;
     private BluetoothSocket     m_BTSocket = null;
     private boolean             m_isConnected = false;
+//    private String              m_command;
+    private String              m_prevCommand;
 
     //SPP UUID. Look for it
     static final UUID myUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
@@ -30,6 +32,7 @@ public class XBluetooth
     {
         m_appContext = context;
         m_deviceAddress = Address;
+        m_prevCommand = "";
     }
 
     public boolean Init()
@@ -53,32 +56,12 @@ public class XBluetooth
 
     public void TurnOffLed()
     {
-        if (m_BTSocket!=null)
-        {
-            try
-            {
-                m_BTSocket.getOutputStream().write("TF".toString().getBytes());
-            }
-            catch (IOException e)
-            {
-                toastLong("Error");
-            }
-        }
+        send("TF\n");
     }
 
     public void TurnOnLed()
     {
-        if (m_BTSocket!=null)
-        {
-            try
-            {
-                m_BTSocket.getOutputStream().write("TO".toString().getBytes());
-            }
-            catch (IOException e)
-            {
-                toastLong("Error");
-            }
-        }
+        send("TO\n");
     }
 
     //UI thread
@@ -135,6 +118,28 @@ public class XBluetooth
             {
                 toastLong("Connected.");
                 m_isConnected = true;
+            }
+        }
+    }
+
+    public boolean isConnected()
+    {
+        return m_isConnected;
+    }
+
+
+    private void send(String s)
+    {
+        if (m_BTSocket!=null)
+        {
+            try
+            {
+                m_BTSocket.getOutputStream().write(s.toString().getBytes());
+                m_prevCommand = s;
+            }
+            catch (IOException e)
+            {
+                toastLong("Error");
             }
         }
     }

@@ -7,6 +7,9 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
+import org.opencv.core.Point;
+import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import android.app.Activity;
@@ -68,10 +71,8 @@ public class WorkActivity extends Activity implements CvCameraViewListener2
         String address = newint.getStringExtra(SetupActivity.EXTRA_ADDRESS);
         m_XBluetooth = new XBluetooth(address, getApplicationContext());
         boolean bluetoothConnected = m_XBluetooth.Init();
-        if(!bluetoothConnected)
-        {
-            finish();
-        }
+
+        m_XDetector = new XDetector();
     }
 
     @Override
@@ -116,22 +117,21 @@ public class WorkActivity extends Activity implements CvCameraViewListener2
     {
         Mat mRgba = inputFrame.rgba();
 
-        mRgba =  m_XDetector.circleDectect(inputFrame);
-        if(m_XDetector.isBallDetected())
-        {
-            m_XBluetooth.TurnOnLed();
-        }
-        else
-        {
-            m_XBluetooth.TurnOffLed();
+        m_XDetector.circleDectect(inputFrame);
+        if(m_XBluetooth.isConnected()) {
+            if (m_XDetector.isBallDetected()) {
+                m_XBluetooth.TurnOnLed();
+            } else {
+                m_XBluetooth.TurnOffLed();
+            }
         }
 
-        //Transpose
-        Mat mRgbaT = mRgba.t();
-        Core.flip(mRgba.t(), mRgbaT, 1);
-        Imgproc.resize(mRgbaT, mRgbaT, mRgba.size());
+//        Transpose
+//        Mat mRgbaT = mRgba.t();
+//        Core.flip(mRgba.t(), mRgbaT, 1);
+//        Imgproc.resize(mRgbaT, mRgbaT, mRgba.size());
 
-        return mRgbaT;
+        return mRgba;
     }
 
     //Options Menu----------------------------------------------------------------------------------
