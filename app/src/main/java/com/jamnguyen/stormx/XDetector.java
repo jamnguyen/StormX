@@ -36,7 +36,8 @@ public class XDetector
         //100: Threshold for center detection.
         //0: Minimum radio to be detected. If unknown, put zero as default.
         //0: Maximum radius to be detected. If unknown, put zero as default
-        Imgproc.HoughCircles(grayInput, circles, Imgproc.CV_HOUGH_GRADIENT, 2, grayInput.rows()/8, 200, 100, 0, 0);
+//        Imgproc.HoughCircles(grayInput, circles, Imgproc.CV_HOUGH_GRADIENT, 2, grayInput.rows()/8, 200, 100, 0, 0);
+        Imgproc.HoughCircles(grayInput, circles, Imgproc.CV_HOUGH_GRADIENT, 2, grayInput.rows()/8, 99, 39, 10, 400);
 
         if (circles.cols() > 0)
         {

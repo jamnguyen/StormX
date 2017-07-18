@@ -23,6 +23,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.WindowManager;
+import android.widget.TextView;
 
 public class WorkActivity extends Activity implements CvCameraViewListener2
 {
@@ -33,6 +34,8 @@ public class WorkActivity extends Activity implements CvCameraViewListener2
 
     private XBluetooth      m_XBluetooth;
     private XDetector       m_XDetector;
+
+    private String          m_receivedMsg;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this)
     {
@@ -70,7 +73,7 @@ public class WorkActivity extends Activity implements CvCameraViewListener2
         Intent newint = getIntent();
         String address = newint.getStringExtra(SetupActivity.EXTRA_ADDRESS);
         m_XBluetooth = new XBluetooth(address, getApplicationContext());
-        boolean bluetoothConnected = m_XBluetooth.Init();
+        m_XBluetooth.Init();
 
         m_XDetector = new XDetector();
     }
@@ -125,6 +128,11 @@ public class WorkActivity extends Activity implements CvCameraViewListener2
                 m_XBluetooth.TurnOffLed();
             }
         }
+
+        m_XBluetooth.getReadMessage();
+//        m_readBufferTextView.setText(m_XBluetooth.getReadMessage());
+//        Imgproc.putText(mRgba, "Edited by me", new Point(50, 50), Core.FONT_ITALIC, 1.0, new  Scalar(255));
+//        Imgproc.putText(mRgba, m_XBluetooth.getReadMessage(), new Point(20, 20), Core.FONT_HERSHEY_COMPLEX, 1.0, new Scalar(255, 255, 255));
 
 //        Transpose
 //        Mat mRgbaT = mRgba.t();
