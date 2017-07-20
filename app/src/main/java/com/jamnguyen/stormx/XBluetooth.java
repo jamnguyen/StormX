@@ -28,85 +28,38 @@ import java.util.UUID;
 
 public class XBluetooth
 {
-    private Activity            m_appActivity;
     private Context             m_appContext;
+    private Handler             m_appHandler;           //Handler from activity
     private String              m_deviceAddress = null;
 
-    private String              m_readBuffer = "";
-    private String              m_status;
-
-    private boolean             m_isConnected = false;
-
-    private Handler             m_Handler; // Our main handler that will receive callback notifications
-    private ConnectedThread     m_ConnectedThread; // bluetooth background worker thread to send and receive data
-    private BluetoothSocket     m_BTSocket = null; // bi-directional client-to-client data path
+    private ConnectedThread     m_ConnectedThread;      //Bluetooth background worker thread to send and receive data
+    private BluetoothSocket     m_BTSocket = null;      //Bi-directional client-to-client data path
     private BluetoothAdapter    m_BTAdapter;
 
-    private static final UUID BTMODULEUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"); // "random" unique identifier
+    private String              m_prevSentMsg;
 
+    private static final UUID BTMODULEUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"); //"random" unique identifier
 
-    // #defines for identifying shared types between calling functions
-    private final static int REQUEST_ENABLE_BT = 1; // used to identify adding bluetooth names
-    private final static int MESSAGE_READ = 2; // used in bluetooth handler to identify message update
-    private final static int CONNECTING_STATUS = 3; // used in bluetooth handler to identify message status
+    public final static int REQUEST_ENABLE_BT = 1;     //Used to identify adding bluetooth names
+    public final static int MESSAGE_READ = 2;          //Used in bluetooth handler to identify message update
+    public final static int CONNECTING_STATUS = 3;     //Used in bluetooth handler to identify message status
 
-    public XBluetooth(String Address, Context context)
+    public XBluetooth(String Address, Context context, Handler appHandler)
     {
         m_appContext = context;
         m_deviceAddress = Address;
+        m_appHandler = appHandler;
+        m_prevSentMsg = "Nothing sent";
     }
 
-    public XBluetooth(String Address, Context context, Activity activity)
+    public void init()
     {
-        m_appContext = context;
-        m_appActivity = activity;
-        m_deviceAddress = Address;
-    }
+        //Get a handle on the bluetooth radio
+        m_BTAdapter = BluetoothAdapter.getDefaultAdapter();
 
-    public void Init()
-    {
-        m_BTAdapter = BluetoothAdapter.getDefaultAdapter(); // get a handle on the bluetooth radio
+        Utils.toastShort("Connecting...", m_appContext);
 
-        m_Handler = new Handler()
-        {
-            public void handleMessage(android.os.Message msg)
-            {
-                if(msg.what == MESSAGE_READ)
-                {
-                    String readMessage = null;
-                    try
-                    {
-                        readMessage = new String((byte[]) msg.obj, "UTF-8");
-//                        m_readBufferTextView.setText(readMessage);
-                        toastShort(readMessage);
-                    }
-                    catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                if(msg.what == CONNECTING_STATUS)
-                {
-                    if(msg.arg1 == 1)
-                    {
-                        m_status = "Connected to Device: " + (msg.obj);
-                        toastShort(m_status);
-                        m_isConnected = true;
-                    }
-                    else
-                    {
-                        m_status = "Connection Failed";
-                        toastShort(m_status);
-                    }
-                }
-            }
-        };
-
-        //Connect
-        m_status = "Connecting...";
-        toastShort(m_status);
-
-        // Spawn a new thread to avoid blocking the GUI one
+        //Spawn a new thread to avoid blocking the GUI one
         new Thread()
         {
             public void run()
@@ -121,9 +74,10 @@ public class XBluetooth
                 } catch (IOException e)
                 {
                     fail = true;
-                    toastShort("Socket creation failed.");
+                    Utils.toastShort("Socket creation failed.", m_appContext);
                 }
-                // Establish the Bluetooth socket connection.
+
+                //Establish the Bluetooth socket connection.
                 try
                 {
                     m_BTSocket.connect();
@@ -134,18 +88,18 @@ public class XBluetooth
                     {
                         fail = true;
                         m_BTSocket.close();
-                        m_Handler.obtainMessage(CONNECTING_STATUS, -1, -1).sendToTarget();
+                        m_appHandler.obtainMessage(CONNECTING_STATUS, -1, -1).sendToTarget();
                     }
                     catch (IOException e2)
                     {
-                        toastShort("Socket creation failed.");
+                        Utils.toastShort("Socket creation failed.", m_appContext);
                     }
                 }
                 if(!fail)
                 {
                     m_ConnectedThread = new ConnectedThread(m_BTSocket);
                     m_ConnectedThread.start();
-                    m_Handler.obtainMessage(CONNECTING_STATUS, 1, -1, m_deviceAddress).sendToTarget();
+                    m_appHandler.obtainMessage(CONNECTING_STATUS, 1, -1, m_deviceAddress).sendToTarget();
                 }
             }
         }.start();
@@ -153,8 +107,8 @@ public class XBluetooth
 
     private BluetoothSocket createBluetoothSocket(BluetoothDevice device) throws IOException
     {
+        //Creates secure outgoing connection with BT device using UUID
         return  device.createRfcommSocketToServiceRecord(BTMODULEUUID);
-        //creates secure outgoing connection with BT device using UUID
     }
 
     private class ConnectedThread extends Thread
@@ -169,8 +123,8 @@ public class XBluetooth
             InputStream tmpIn = null;
             OutputStream tmpOut = null;
 
-            // Get the input and output streams, using temp objects because
-            // member streams are final
+            //Get the input and output streams
+            //Using temp objects because member streams are final
             try
             {
                 tmpIn = socket.getInputStream();
@@ -184,21 +138,26 @@ public class XBluetooth
 
         public void run()
         {
-            byte[] buffer = new byte[1024];  // buffer store for the stream
-            int bytes; // bytes returned from read()
-            // Keep listening to the InputStream until an exception occurs
+            byte[] buffer = new byte[1024];  //Buffer store for the stream
+            int bytes;                       //Bytes returned from read()
+
+            //Keep listening to the InputStream until an exception occurs
             while (true)
             {
                 try
                 {
-                    // Read from the InputStream
+                    //How many bytes are ready to be read?
                     bytes = mmInStream.available();
                     if(bytes != 0)
                     {
-                        SystemClock.sleep(100); //pause and wait for rest of data. Adjust this depending on your sending speed.
-                        bytes = mmInStream.available(); // how many bytes are ready to be read?
-                        bytes = mmInStream.read(buffer, 0, bytes); // record how many bytes we actually read
-                        m_Handler.obtainMessage(MESSAGE_READ, bytes, -1, buffer).sendToTarget(); // Send the obtained bytes to the UI activity
+                        //Pause and wait for rest of data.
+                        //Adjust this depending on sending speed.
+                        SystemClock.sleep(100);
+                        //Record how many bytes we actually read
+                        bytes = mmInStream.available();
+                        bytes = mmInStream.read(buffer, 0, bytes);
+                        //Send the obtained bytes to the UI activity
+                        m_appHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer).sendToTarget();
                     }
                 }
                 catch (IOException e)
@@ -236,7 +195,7 @@ public class XBluetooth
             try {
                 m_BTSocket.close(); //close connection
             } catch (IOException e) {
-                toastLong("Error");
+                Utils.toastLong("Error", m_appContext);
             }
         }
     }
@@ -251,31 +210,18 @@ public class XBluetooth
         send("TO\n");
     }
 
-    public String getReadMessage()
+    public void send(String s)
     {
-        return m_readBuffer;
-    }
-
-    public boolean isConnected()
-    {
-        return m_isConnected;
-    }
-
-
-    private void send(String s)
-    {
-        if(m_ConnectedThread != null) //First check to make sure thread created
+        //First check to make sure thread created
+        if(m_ConnectedThread != null)
+        {
             m_ConnectedThread.write(s);
+            m_prevSentMsg = s;
+        }
     }
 
-    //Fast way to call Toast
-    private void toastLong(String s)
+    public String getPrevSentMsg()
     {
-        Toast.makeText(m_appContext, s, Toast.LENGTH_LONG).show();
-    }
-
-    private void toastShort(String s)
-    {
-        Toast.makeText(m_appContext, s, Toast.LENGTH_SHORT).show();
+        return m_prevSentMsg;
     }
 }

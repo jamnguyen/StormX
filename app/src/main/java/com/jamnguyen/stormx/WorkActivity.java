@@ -9,33 +9,27 @@ import org.opencv.core.Mat;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
-import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.MotionEvent;
+import android.os.Handler;
 import android.view.SurfaceView;
-import android.view.View;
-import android.view.View.OnTouchListener;
 import android.view.WindowManager;
-import android.widget.TextView;
+
+import java.io.UnsupportedEncodingException;
 
 public class WorkActivity extends Activity implements CvCameraViewListener2
 {
     private XCameraView     m_OpenCvCameraView;
-    private boolean         m_ballDetected = false;
-    private MenuItem        m_menuDetect;
-    private MenuItem        m_menuMultiBall;
+    private boolean         m_isBallOnScreen = false;
 
     private XBluetooth      m_XBluetooth;
+    private boolean         m_isBluetoothConnected = false;
     private XDetector       m_XDetector;
-
-    private String          m_receivedMsg;
+    private Handler         m_Handler;                  //Main handler that will receive callback notifications
+    private String          m_MsgFromArduino;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this)
     {
@@ -61,9 +55,9 @@ public class WorkActivity extends Activity implements CvCameraViewListener2
     {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
         setContentView(R.layout.activity_work);
 
+        m_MsgFromArduino = "<Nothing received>";
         //Camera
         m_OpenCvCameraView = (XCameraView) findViewById(R.id.activity_java_surface_view);
         m_OpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
@@ -72,8 +66,12 @@ public class WorkActivity extends Activity implements CvCameraViewListener2
         //Bluetooth
         Intent newint = getIntent();
         String address = newint.getStringExtra(SetupActivity.EXTRA_ADDRESS);
-        m_XBluetooth = new XBluetooth(address, getApplicationContext());
-        m_XBluetooth.Init();
+
+        //Init handler for message from XBluetooth
+        initHandler();
+
+        m_XBluetooth = new XBluetooth(address, getApplicationContext(), m_Handler);
+        m_XBluetooth.init();
 
         m_XDetector = new XDetector();
     }
@@ -121,83 +119,65 @@ public class WorkActivity extends Activity implements CvCameraViewListener2
         Mat mRgba = inputFrame.rgba();
 
         m_XDetector.circleDectect(inputFrame);
-        if(m_XBluetooth.isConnected()) {
-            if (m_XDetector.isBallDetected()) {
-                m_XBluetooth.TurnOnLed();
-            } else {
-                m_XBluetooth.TurnOffLed();
+        if(m_isBluetoothConnected)
+        {
+            if (m_XDetector.isBallDetected())
+            {
+                if (!m_XBluetooth.getPrevSentMsg().equals("TO"))
+                {
+                    m_XBluetooth.TurnOnLed();
+                }
+            }
+            else {
+                if (!m_XBluetooth.getPrevSentMsg().equals("TF"))
+                {
+                    m_XBluetooth.TurnOffLed();
+                }
             }
         }
 
-        m_XBluetooth.getReadMessage();
 //        m_readBufferTextView.setText(m_XBluetooth.getReadMessage());
 //        Imgproc.putText(mRgba, "Edited by me", new Point(50, 50), Core.FONT_ITALIC, 1.0, new  Scalar(255));
-//        Imgproc.putText(mRgba, m_XBluetooth.getReadMessage(), new Point(20, 20), Core.FONT_HERSHEY_COMPLEX, 1.0, new Scalar(255, 255, 255));
-
-//        Transpose
-//        Mat mRgbaT = mRgba.t();
-//        Core.flip(mRgba.t(), mRgbaT, 1);
-//        Imgproc.resize(mRgbaT, mRgbaT, mRgba.size());
+        Utils.drawString(mRgba, m_MsgFromArduino, 20, 40);
 
         return mRgba;
     }
 
-    //Options Menu----------------------------------------------------------------------------------
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        //Ball detect menu
-//        m_menuDetect = menu.add("BALL DETECT: OFF");
-//
-//        return true;
-//    }
+    //Bluetooth handling----------------------------------------------------------------------------
+    private void initHandler()
+    {
+        m_Handler = new Handler()
+        {
+            //Catch message from XBluetooth
+            public void handleMessage(android.os.Message msg)
+            {
+                if(msg.what == XBluetooth.MESSAGE_READ)
+                {
+                    String readMessage = null;
+                    try
+                    {
+                        readMessage = new String((byte[]) msg.obj, "UTF-8");
+                        //TODO: Handling read message
+                        m_MsgFromArduino = readMessage;
+                    }
+                    catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+                }
 
-//    public boolean onOptionsItemSelected(MenuItem item)
-//    {
-//        int itemID = item.getItemId();
-//
-//        if(itemID == MENU_ID_BALL_DETECT)
-//        {
-//            m_tryDetectBall = !m_tryDetectBall;
-//
-//            if(m_tryDetectBall)
-//            {
-//                m_menuDetect.setTitle("BALL DETECT: ON");
-//            }
-//            else
-//            {
-//                m_menuDetect.setTitle("BALL DETECT: OFF");
-//            }
-//
-//        }
-//        else if(itemID == MENU_ID_MULTI_BALL_DETECT)
-//        {
-//            m_detectMultiBall = !m_detectMultiBall;
-//
-//            if(m_detectMultiBall)
-//            {
-//                m_menuMultiBall.setTitle("MULTI-BALL TRACKING: ON");
-//            }
-//            else
-//            {
-//                m_menuMultiBall.setTitle("MULTI-BALL TRACKING: OFF");
-//            }
-//        }
-//
-//        m_menuMultiBall.setTitle("MULTI-BALL TRACKING: ON");
-//
-//        return true;
-//    }
-
-//    @SuppressLint("SimpleDateFormat")
-//    @Override
-//    public boolean onTouch(View v, MotionEvent event)
-//    {
-//        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
-//        String currentDateandTime = sdf.format(new Date());
-//        String fileName = Environment.getExternalStorageDirectory().getPath() +
-//                "/sample_picture_" + currentDateandTime + ".jpg";
-//        mOpenCvCameraView.takePicture(fileName);
-//        Toast.makeText(this, fileName + " saved", Toast.LENGTH_SHORT).show();
-//        return false;
-//    }
+                if(msg.what == XBluetooth.CONNECTING_STATUS)
+                {
+                    if(msg.arg1 == 1)
+                    {
+                        Utils.toastShort("Connected to Device: " + (msg.obj), getApplicationContext());
+                        m_isBluetoothConnected = true;
+                    }
+                    else
+                    {
+                        Utils.toastShort("Connection Failed", getApplicationContext());
+                    }
+                }
+            }
+        };
+    }
 }
