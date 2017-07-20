@@ -118,26 +118,26 @@ public class WorkActivity extends Activity implements CvCameraViewListener2
     {
         Mat mRgba = inputFrame.rgba();
 
-        m_XDetector.circleDectect(inputFrame);
+        //If Bluetooth connection fail then there's nothing to do
         if(m_isBluetoothConnected)
         {
-            if (m_XDetector.isBallDetected())
-            {
-                if (!m_XBluetooth.getPrevSentMsg().equals("TO"))
-                {
-                    m_XBluetooth.TurnOnLed();
+            //Put all processing here---------------------------------------------------------------
+            m_XDetector.circleDectect(inputFrame);
+            if (m_isBluetoothConnected) {
+                if (m_XDetector.isBallDetected()) {
+                    if (!m_XBluetooth.getPrevSentMsg().equals("TO")) {
+                        m_XBluetooth.TurnOnLed();
+                    }
+                } else {
+                    if (!m_XBluetooth.getPrevSentMsg().equals("TF")) {
+                        m_XBluetooth.TurnOffLed();
+                    }
                 }
             }
-            else {
-                if (!m_XBluetooth.getPrevSentMsg().equals("TF"))
-                {
-                    m_XBluetooth.TurnOffLed();
-                }
-            }
+            //--------------------------------------------------------------------------------------
         }
 
-//        m_readBufferTextView.setText(m_XBluetooth.getReadMessage());
-//        Imgproc.putText(mRgba, "Edited by me", new Point(50, 50), Core.FONT_ITALIC, 1.0, new  Scalar(255));
+        //Showing statuses
         Utils.drawString(mRgba, m_MsgFromArduino, 20, 40);
 
         return mRgba;
@@ -151,13 +151,13 @@ public class WorkActivity extends Activity implements CvCameraViewListener2
             //Catch message from XBluetooth
             public void handleMessage(android.os.Message msg)
             {
+                //Receive message
                 if(msg.what == XBluetooth.MESSAGE_READ)
                 {
                     String readMessage = null;
                     try
                     {
                         readMessage = new String((byte[]) msg.obj, "UTF-8");
-                        //TODO: Handling read message
                         m_MsgFromArduino = readMessage;
                     }
                     catch (UnsupportedEncodingException e) {
@@ -165,6 +165,7 @@ public class WorkActivity extends Activity implements CvCameraViewListener2
                     }
                 }
 
+                //Get connecting status
                 if(msg.what == XBluetooth.CONNECTING_STATUS)
                 {
                     if(msg.arg1 == 1)
