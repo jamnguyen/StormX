@@ -1,27 +1,41 @@
 package com.jamnguyen.stormx;
 
 import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
+import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
+import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.imgproc.Moments;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.SurfaceView;
+import android.view.View;
 import android.view.WindowManager;
 
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 
-public class WorkActivity extends Activity implements CvCameraViewListener2
+import static org.opencv.imgproc.Imgproc.contourArea;
+
+public class WorkActivity extends Activity implements View.OnTouchListener, CvCameraViewListener2
 {
+    private static final String  TAG              = "OCVSample::Activity";
+
     private XCameraView     m_OpenCvCameraView;
     private boolean         m_isBallOnScreen = false;
 
@@ -31,6 +45,11 @@ public class WorkActivity extends Activity implements CvCameraViewListener2
     private Handler         m_Handler;                  //Main handler that will receive callback notifications
     private String          m_MsgFromArduino;
 
+    private Mat             m_Rgba;
+
+
+
+
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this)
     {
         @Override
@@ -39,7 +58,7 @@ public class WorkActivity extends Activity implements CvCameraViewListener2
                 case LoaderCallbackInterface.SUCCESS:
                 {
                     m_OpenCvCameraView.enableView();
-//                    m_OpenCvCameraView.setOnTouchListener(WorkActivity.this);
+                    m_OpenCvCameraView.setOnTouchListener(WorkActivity.this);
                 } break;
                 default:
                 {
@@ -73,7 +92,7 @@ public class WorkActivity extends Activity implements CvCameraViewListener2
         m_XBluetooth = new XBluetooth(address, getApplicationContext(), m_Handler);
         m_XBluetooth.init();
 
-        m_XDetector = new XDetector();
+        m_XDetector = new XDetector(getApplicationContext());
     }
 
     @Override
@@ -105,42 +124,66 @@ public class WorkActivity extends Activity implements CvCameraViewListener2
             m_OpenCvCameraView.disableView();
     }
 
-    public void onCameraViewStarted(int width, int height)
+    public boolean onTouch(View v, MotionEvent event)
     {
+        m_XDetector.getColorOnTouch(m_Rgba, m_OpenCvCameraView.getWidth(), m_OpenCvCameraView.getHeight(), event);
+        return false; // don't need subsequent touch events
     }
 
     //Camera handling-------------------------------------------------------------------------------
+    public void onCameraViewStarted(int width, int height)
+    {
+        m_Rgba = new Mat(height, width, CvType.CV_8UC4);
+        m_XDetector.init();
+    }
     public void onCameraViewStopped()
     {
+        m_Rgba.release();
     }
+
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame)
     {
-        Mat mRgba = inputFrame.rgba();
+        m_Rgba = inputFrame.rgba();
 
-        //If Bluetooth connection fail then there's nothing to do
-        if(m_isBluetoothConnected)
+//        //If Bluetooth connection fail then there's nothing to do
+//        if(m_isBluetoothConnected)
+//        {
+//            //Put all processing here---------------------------------------------------------------
+//            m_XDetector.circleDectect(inputFrame);
+//            if (m_isBluetoothConnected) {
+//                if (m_XDetector.isBallDetected()) {
+//                    if (!m_XBluetooth.getPrevSentMsg().equals("TO")) {
+//                        m_XBluetooth.TurnOnLed();
+//                    }
+//                } else {
+//                    if (!m_XBluetooth.getPrevSentMsg().equals("TF")) {
+//                        m_XBluetooth.TurnOffLed();
+//                    }
+//                }
+//            }
+//            //--------------------------------------------------------------------------------------
+//        }
+
+        //Test: Color detection
+        if(m_XDetector.isColorSelected())
         {
-            //Put all processing here---------------------------------------------------------------
-            m_XDetector.circleDectect(inputFrame);
-            if (m_isBluetoothConnected) {
-                if (m_XDetector.isBallDetected()) {
-                    if (!m_XBluetooth.getPrevSentMsg().equals("TO")) {
-                        m_XBluetooth.TurnOnLed();
-                    }
-                } else {
-                    if (!m_XBluetooth.getPrevSentMsg().equals("TF")) {
-                        m_XBluetooth.TurnOffLed();
-                    }
-                }
+            m_XDetector.colorDetect(m_Rgba);
+            if(m_XDetector.isBallOnScreen())
+            {
+                //Approach ball
+
             }
-            //--------------------------------------------------------------------------------------
+            else
+            {
+                //Look for ball
+            }
         }
 
         //Showing statuses
-        Utils.drawString(mRgba, m_MsgFromArduino, 20, 40);
+        Utils.drawString(m_Rgba, m_MsgFromArduino, 20, 40);
 
-        return mRgba;
+        return m_Rgba;
     }
 
     //Bluetooth handling----------------------------------------------------------------------------

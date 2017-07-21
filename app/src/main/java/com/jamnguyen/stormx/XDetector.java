@@ -1,22 +1,65 @@
 package com.jamnguyen.stormx;
 
-import android.util.Log;
+import android.app.Activity;
+import android.content.Context;
+import android.view.MotionEvent;
 
 import org.opencv.android.CameraBridgeViewBase;
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
+import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.imgproc.Moments;
 
-import static android.content.ContentValues.TAG;
+import java.util.List;
+
+import static org.opencv.imgproc.Imgproc.contourArea;
 
 public class XDetector
 {
-    boolean ballDetected = false;
-    int ballX = -1;
-    int ballY = -1;
+    public static final int BALL_DETECTION_BY_CIRCLE = 1;
+    public static final int BALL_DETECTION_BY_COLOR = 2;
 
+    private Context                 m_appContext;
+
+    private ColorBlobDetector       m_BlobDetector;
+    private Scalar                  m_BlobColorHsv;
+    private Scalar                  m_BlobColorRgba;
+    private boolean                 m_isColorSelected;
+    private Mat                     m_Spectrum;
+    private MatOfPoint              m_ballContour;
+    private Size                    SPECTRUM_SIZE;
+    private Scalar                  CONTOUR_COLOR;
+    private Scalar                  CIRLCE_COLOR;
+
+    private boolean                 m_isBallOnScreen = false;
+    private int                     m_ballX = -1;
+    private int                     m_ballY = -1;
+    private double                  m_ballArea;
+
+    public XDetector(Context context)
+    {
+        m_appContext = context;
+    }
+
+    public void init()
+    {
+        m_BlobDetector = new ColorBlobDetector();
+        m_Spectrum = new Mat();
+        m_BlobColorRgba = new Scalar(255);
+        m_BlobColorHsv = new Scalar(255);
+        SPECTRUM_SIZE = new Size(200, 64);
+        CONTOUR_COLOR = new Scalar(255,0,0,255);
+        CIRLCE_COLOR = new Scalar(0, 0, 255, 255);
+        m_isColorSelected = false;
+    }
+
+    //Circle detecting------------------------------------------------------------------------------
     public Mat circleDectect(CameraBridgeViewBase.CvCameraViewFrame inputFrame)
     {
         //To grayscale
@@ -41,7 +84,7 @@ public class XDetector
 
         if (circles.cols() > 0)
         {
-            ballDetected = true;
+            m_isBallOnScreen = true;
 
             //Draw circles
             double circleVec[] = circles.get(0, 0);
@@ -50,8 +93,8 @@ public class XDetector
                 Point center = new Point((int) circleVec[0], (int) circleVec[1]);
                 int radius = (int) circleVec[2];
 
-                ballX = (int) circleVec[0];
-                ballY = (int) circleVec[1];
+                m_ballX = (int) circleVec[0];
+                m_ballY = (int) circleVec[1];
 
                 {
                     Imgproc.circle(rgbaInput, center, 3, new Scalar(0, 0, 255), 5);
@@ -61,26 +104,178 @@ public class XDetector
         }
         else
         {
-            ballDetected = false;
-            ballX = -1;
-            ballY = -1;
+            m_isBallOnScreen = false;
+            m_ballX = -1;
+            m_ballY = -1;
         }
 
         return rgbaInput;
     }
 
-    public boolean isBallDetected()
-    {
-        return ballDetected;
-    }
-
     public int getBallX()
     {
-        return ballX;
+        return m_ballX;
     }
 
     public int getBallY()
     {
-        return ballY;
+        return m_ballY;
     }
+
+    //----------------------------------------------------------------------------------------------
+
+    //Color detecting-------------------------------------------------------------------------------
+    public Mat colorDetect(Mat rgbaInput)
+    {
+        m_BlobDetector.process(rgbaInput);
+        List<MatOfPoint> contours = m_BlobDetector.getContours();
+        Imgproc.drawContours(rgbaInput, contours, -1, CONTOUR_COLOR);
+
+        //Get biggest area contour
+        int indexOfBiggestContour = GetIndexOfBiggestContour(contours);
+        if(indexOfBiggestContour > - 1)
+        {
+            //Camera saw the ball
+            //Handle catching
+            m_isBallOnScreen = true;
+            m_ballContour = contours.get(indexOfBiggestContour);
+//                IM_Update(true);
+        }
+        else
+        {
+            //No ball was seen
+            //Arduino resume running
+            m_isBallOnScreen = false;
+            m_ballContour = null;
+//                IM_Update(false);
+        }
+
+        //Draw center point
+        if(m_ballContour != null) {
+            Imgproc.circle(rgbaInput, GetCenterPointOfContour(m_ballContour), 20, CIRLCE_COLOR, -1);
+
+            Mat colorLabel = rgbaInput.submat(4, 68, 4, 68);
+            colorLabel.setTo(m_BlobColorRgba);
+
+            Mat spectrumLabel = rgbaInput.submat(4, 4 + m_Spectrum.rows(), 70, 70 + m_Spectrum.cols());
+            m_Spectrum.copyTo(spectrumLabel);
+        }
+
+        return rgbaInput;
+    }
+
+    public void getColorOnTouch(Mat Rgba, int frameWidth, int frameHeight, MotionEvent event)
+    {
+        int cols = Rgba.cols();
+        int rows = Rgba.rows();
+
+        int xOffset = (frameWidth - cols) / 2;
+        int yOffset = (frameHeight - rows) / 2;
+
+        int x = (int)event.getX() - xOffset;
+        int y = (int)event.getY() - yOffset;
+
+//        Log.i(TAG, "Touch image coordinates: (" + x + ", " + y + ")");
+
+        if ((x < 0) || (y < 0) || (x > cols) || (y > rows)) return;
+
+        Rect touchedRect = new Rect();
+
+        touchedRect.x = (x>4) ? x-4 : 0;
+        touchedRect.y = (y>4) ? y-4 : 0;
+
+        touchedRect.width = (x+4 < cols) ? x + 4 - touchedRect.x : cols - touchedRect.x;
+        touchedRect.height = (y+4 < rows) ? y + 4 - touchedRect.y : rows - touchedRect.y;
+
+        Mat touchedRegionRgba = Rgba.submat(touchedRect);
+
+        Mat touchedRegionHsv = new Mat();
+        Imgproc.cvtColor(touchedRegionRgba, touchedRegionHsv, Imgproc.COLOR_RGB2HSV_FULL);
+
+        // Calculate average color of touched region
+        m_BlobColorHsv = Core.sumElems(touchedRegionHsv);
+        int pointCount = touchedRect.width*touchedRect.height;
+        for (int i = 0; i < m_BlobColorHsv.val.length; i++)
+            m_BlobColorHsv.val[i] /= pointCount;
+
+        m_BlobColorRgba = converScalarHsv2Rgba(m_BlobColorHsv);
+
+//        Log.i(TAG, "Touched rgba color: (" + mBlobColorRgba.val[0] + ", " + mBlobColorRgba.val[1] +
+//                ", " + mBlobColorRgba.val[2] + ", " + mBlobColorRgba.val[3] + ")");
+
+        m_BlobDetector.setHsvColor(m_BlobColorHsv);
+
+        Imgproc.resize(m_BlobDetector.getSpectrum(), m_Spectrum, SPECTRUM_SIZE);
+
+        m_isColorSelected = true;
+
+        touchedRegionRgba.release();
+        touchedRegionHsv.release();
+    }
+
+    private Scalar converScalarHsv2Rgba(Scalar hsvColor)
+    {
+        Mat pointMatRgba = new Mat();
+        Mat pointMatHsv = new Mat(1, 1, CvType.CV_8UC3, hsvColor);
+        Imgproc.cvtColor(pointMatHsv, pointMatRgba, Imgproc.COLOR_HSV2RGB_FULL, 4);
+
+        return new Scalar(pointMatRgba.get(0, 0));
+    }
+
+    private int GetIndexOfBiggestContour(List<MatOfPoint> contours)
+    {
+
+        int index = -1;
+        if(contours.size() == 0)
+            return index;
+
+        double area = 0;
+        for (int i = 0; i < contours.size(); i++) {
+            if (contourArea(contours.get(i)) > area) {
+                area = contourArea(contours.get(i));
+                index = i;
+            }
+        }
+
+        if(m_isColorSelected && index > -1)
+        {
+            m_ballArea = area;
+        }
+        else
+        {
+            m_ballArea = 0;
+        }
+        return index;
+    }
+
+    private Point GetCenterPointOfContour(MatOfPoint contour)
+    {
+        Moments m = Imgproc.moments(contour);
+        int x = (int)(m.m10 / m.m00);
+        int y =(int)(m.m01 / m.m00);
+        return new Point(x, y);
+    }
+
+    public Point getBallCenter()
+    {
+        if(m_ballContour != null)
+        {
+            return GetCenterPointOfContour(m_ballContour);
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    public boolean isColorSelected()
+    {
+        return m_isColorSelected;
+    }
+
+    public boolean isBallOnScreen()
+    {
+        return m_isBallOnScreen;
+    }
+    //----------------------------------------------------------------------------------------------
 }
