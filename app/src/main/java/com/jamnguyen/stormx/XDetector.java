@@ -31,7 +31,8 @@ public class XDetector
 
     private Context                 m_appContext;
 
-    private ColorBlobDetector       m_BlobDetector;
+    private ColorBlobDetector       m_BlobDetectorPink;
+    private ColorBlobDetector       m_BlobDetectorOrange;
     private Scalar                  m_BlobColorHsv;
     private Scalar                  m_BlobColorRgba;
     private boolean                 m_isColorSelected;
@@ -56,7 +57,8 @@ public class XDetector
 
     public void init(int screenWidth, int screenHeight)
     {
-        m_BlobDetector = new ColorBlobDetector();
+        m_BlobDetectorPink = new ColorBlobDetector();
+        m_BlobDetectorOrange = new ColorBlobDetector();
         m_Spectrum = new Mat();
         m_BlobColorRgba = new Scalar(255);
         m_BlobColorHsv = new Scalar(255);
@@ -138,8 +140,11 @@ public class XDetector
     //Color detecting-------------------------------------------------------------------------------
     public Mat colorDetect(Mat rgbaInput)
     {
-        m_BlobDetector.process(rgbaInput);
-        List<MatOfPoint> contours = m_BlobDetector.getContours();
+        m_BlobDetectorPink.process(rgbaInput);
+        m_BlobDetectorOrange.process(rgbaInput);
+        List<MatOfPoint> contours = m_BlobDetectorPink.getContours();
+        contours.addAll(m_BlobDetectorOrange.getContours());
+
         Imgproc.drawContours(rgbaInput, contours, -1, CONTOUR_COLOR);
 
         //Get biggest area contour
@@ -204,19 +209,28 @@ public class XDetector
         Imgproc.cvtColor(touchedRegionRgba, touchedRegionHsv, Imgproc.COLOR_RGB2HSV_FULL);
 
         // Calculate average color of touched region
-        m_BlobColorHsv = Core.sumElems(touchedRegionHsv);
-        int pointCount = touchedRect.width*touchedRect.height;
-        for (int i = 0; i < m_BlobColorHsv.val.length; i++)
-            m_BlobColorHsv.val[i] /= pointCount;
+//        m_BlobColorHsv = Core.sumElems(touchedRegionHsv);
+        m_BlobColorHsv = new Scalar(233.0625, 183.109375, 225.0, 0.0);
+//        int pointCount = touchedRect.width*touchedRect.height;
+//        for (int i = 0; i < m_BlobColorHsv.val.length; i++)
+//            m_BlobColorHsv.val[i] /= pointCount;
 
         m_BlobColorRgba = converScalarHsv2Rgba(m_BlobColorHsv);
 
 //        Log.i(TAG, "Touched rgba color: (" + mBlobColorRgba.val[0] + ", " + mBlobColorRgba.val[1] +
 //                ", " + mBlobColorRgba.val[2] + ", " + mBlobColorRgba.val[3] + ")");
 
-        m_BlobDetector.setHsvColor(m_BlobColorHsv);
+//        Utils.toastLong("Touched HSV color: (" + m_BlobColorHsv.val[0] + ", " + m_BlobColorHsv.val[1] +
+//                ", " + m_BlobColorHsv.val[2] + ", " + m_BlobColorHsv.val[3] + ")", m_appContext);
 
-        Imgproc.resize(m_BlobDetector.getSpectrum(), m_Spectrum, SPECTRUM_SIZE);
+        //Pink: 233.0625, 183.109375, 225.0
+        //Orange: 13.640625, 193.3125, 231.578125
+
+        m_BlobDetectorPink.setHsvColor(m_BlobColorHsv);
+        m_BlobColorHsv = new Scalar(13.640625, 193.3125, 231.578125, 0.0);
+        m_BlobDetectorOrange.setHsvColor(m_BlobColorHsv);
+
+        Imgproc.resize(m_BlobDetectorPink.getSpectrum(), m_Spectrum, SPECTRUM_SIZE);
 
         m_isColorSelected = true;
 
