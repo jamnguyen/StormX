@@ -25,6 +25,10 @@ public class XDetector
     public static final int BALL_DETECTION_BY_CIRCLE = 1;
     public static final int BALL_DETECTION_BY_COLOR = 2;
 
+    public static final double CAUGHT_AREA_RATIO    = 0.20;
+    public static final double MIDDLE_LINE          = 500;
+    public static final double MIDDLE_DELTA         = 120;
+
     private Context                 m_appContext;
 
     private ColorBlobDetector       m_BlobDetector;
@@ -41,13 +45,16 @@ public class XDetector
     private int                     m_ballX = -1;
     private int                     m_ballY = -1;
     private double                  m_ballArea;
+    private double                  m_screenArea;
+    private Point                   m_midUpPoint;
+    private Point                   m_midDownPoint;
 
     public XDetector(Context context)
     {
         m_appContext = context;
     }
 
-    public void init()
+    public void init(int screenWidth, int screenHeight)
     {
         m_BlobDetector = new ColorBlobDetector();
         m_Spectrum = new Mat();
@@ -57,6 +64,10 @@ public class XDetector
         CONTOUR_COLOR = new Scalar(255,0,0,255);
         CIRLCE_COLOR = new Scalar(0, 0, 255, 255);
         m_isColorSelected = false;
+        m_screenArea = screenWidth*screenHeight;
+        m_ballArea = 0;
+        m_midUpPoint = new Point(MIDDLE_LINE, 0);
+        m_midDownPoint = new Point(MIDDLE_LINE, screenHeight);
     }
 
     //Circle detecting------------------------------------------------------------------------------
@@ -268,6 +279,16 @@ public class XDetector
         }
     }
 
+    public double getBallArea()
+    {
+        return m_ballArea;
+    }
+
+    public double getScreenArea()
+    {
+        return m_screenArea;
+    }
+
     public boolean isColorSelected()
     {
         return m_isColorSelected;
@@ -278,4 +299,19 @@ public class XDetector
         return m_isBallOnScreen;
     }
     //----------------------------------------------------------------------------------------------
+
+    public void drawForwardRange(Mat rgba)
+    {
+        m_midUpPoint.x = MIDDLE_LINE;
+        m_midDownPoint.x = MIDDLE_LINE;
+        Imgproc.line(rgba, m_midUpPoint, m_midDownPoint, new Scalar(255, 0, 0, 255));
+
+        m_midUpPoint.x = MIDDLE_LINE - MIDDLE_DELTA;
+        m_midDownPoint.x = MIDDLE_LINE - MIDDLE_DELTA;
+        Imgproc.line(rgba, m_midUpPoint, m_midDownPoint, new Scalar(255, 255, 0, 255));
+
+        m_midUpPoint.x = MIDDLE_LINE + MIDDLE_DELTA;
+        m_midDownPoint.x = MIDDLE_LINE + MIDDLE_DELTA;
+        Imgproc.line(rgba, m_midUpPoint, m_midDownPoint, new Scalar(255, 255, 0, 255));
+    }
 }

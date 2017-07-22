@@ -1,30 +1,35 @@
 package com.jamnguyen.stormx;
 
+import org.opencv.core.Point;
+
 public class XCommander
 {
     //DEFINES---------------------------------------------------------------------------------------
+
+
     //To Arduino
-    public static final String MOVE_FORWARD     = "F\n";
-    public static final String TURN_LEFT        = "L\n";
-    public static final String TURN_LEFT_90     = "Q\n";
-    public static final String TURN_RIGHT       = "R\n";
-    public static final String TURN_RIGHT_90    = "E\n";
-    public static final String TURN_AROUND      = "Z\n";
-    public static final String MOVE_BACKWARD    = "B\n";
-    public static final String MOVE_BACKWARD_1S = "V\n";
-    public static final String STOP             = "S\n";
-    public static final String CATCH_BALL       = "C\n";
-    public static final String PUSH_BALL        = "P\n";
+    public static final String MOVE_FORWARD     = "F";
+    public static final String TURN_LEFT        = "L";
+    public static final String TURN_LEFT_90     = "Q";
+    public static final String TURN_RIGHT       = "R";
+    public static final String TURN_RIGHT_90    = "E";
+    public static final String TURN_AROUND      = "Z";
+    public static final String MOVE_BACKWARD    = "B";
+    public static final String MOVE_BACKWARD_1S = "V";
+    public static final String STOP             = "S";
+    public static final String CATCH_BALL       = "C";
+    public static final String PUSH_BALL        = "P";
 
     //From Arduino
-    public static final String CANNOT_MOVE      = "K\n";
+    public static final String CANNOT_MOVE      = "K";
     //----------------------------------------------------------------------------------------------
-
+    private XDetector m_Detector;
     private XBluetooth m_Bluetooth;
 
-    public XCommander(XBluetooth BT)
+    public XCommander(XBluetooth BT, XDetector DT)
     {
         m_Bluetooth = BT;
+        m_Detector = DT;
     }
 
     public void sendCommnand(String command)
@@ -40,7 +45,7 @@ public class XCommander
 		//This function run when there's ball on screen
 		
 		//Ball's catchable
-        if(BallArea/ScreenArea >= CAUGHT_AREA)
+        if(m_Detector.getBallArea()/m_Detector.getScreenArea() >= XDetector.CAUGHT_AREA_RATIO)
         {
             //First: Stop
             if(!m_Bluetooth.getPrevSentMsg().equals(CATCH_BALL))
@@ -56,11 +61,11 @@ public class XCommander
         else
         {
             //Calibrating direction
-            if (centerPoint.x < MIDDLE_LINE && (MIDDLE_LINE - centerPoint.x) > MIDDLE_DELTA)
+            if (centerPoint.x < XDetector.MIDDLE_LINE && (XDetector.MIDDLE_LINE - centerPoint.x) > XDetector.MIDDLE_DELTA)
             {
                 sendCommnand(TURN_LEFT);
             } 
-			else if (centerPoint.x > MIDDLE_LINE && (centerPoint.x - MIDDLE_LINE) > MIDDLE_DELTA)
+			else if (centerPoint.x > XDetector.MIDDLE_LINE && (centerPoint.x - XDetector.MIDDLE_LINE) > XDetector.MIDDLE_DELTA)
             {
 				sendCommnand(TURN_RIGHT);
             }

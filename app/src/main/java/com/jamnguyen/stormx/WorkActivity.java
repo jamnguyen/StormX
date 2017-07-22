@@ -42,6 +42,7 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
     private XBluetooth      m_XBluetooth;
     private boolean         m_isBluetoothConnected = false;
     private XDetector       m_XDetector;
+    private XCommander      m_XCommander;
     private Handler         m_Handler;                  //Main handler that will receive callback notifications
     private String          m_MsgFromArduino;
 
@@ -93,6 +94,8 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
         m_XBluetooth.init();
 
         m_XDetector = new XDetector(getApplicationContext());
+
+        m_XCommander = new XCommander(m_XBluetooth, m_XDetector);
     }
 
     @Override
@@ -134,7 +137,7 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
     public void onCameraViewStarted(int width, int height)
     {
         m_Rgba = new Mat(height, width, CvType.CV_8UC4);
-        m_XDetector.init();
+        m_XDetector.init(width, height);
     }
     public void onCameraViewStopped()
     {
@@ -146,42 +149,37 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
     {
         m_Rgba = inputFrame.rgba();
 
-//        //If Bluetooth connection fail then there's nothing to do
-//        if(m_isBluetoothConnected)
-//        {
-//            //Put all processing here---------------------------------------------------------------
-//            m_XDetector.circleDectect(inputFrame);
-//            if (m_isBluetoothConnected) {
-//                if (m_XDetector.isBallDetected()) {
-//                    if (!m_XBluetooth.getPrevSentMsg().equals("TO")) {
-//                        m_XBluetooth.TurnOnLed();
-//                    }
-//                } else {
-//                    if (!m_XBluetooth.getPrevSentMsg().equals("TF")) {
-//                        m_XBluetooth.TurnOffLed();
-//                    }
-//                }
-//            }
-//            //--------------------------------------------------------------------------------------
-//        }
-
-        //Test: Color detection
-        if(m_XDetector.isColorSelected())
+        //If Bluetooth connection fail then there's nothing to do
+        if(m_isBluetoothConnected)
         {
-            m_XDetector.colorDetect(m_Rgba);
-            if(m_XDetector.isBallOnScreen())
+            //Put all processing here---------------------------------------------------------------
+//            m_XDetector.circleDectect(inputFrame);
+            if(m_XDetector.isColorSelected())
             {
-                //Approach ball
+                //Show forward range
+                m_XDetector.drawForwardRange(m_Rgba);
 
+                m_XDetector.colorDetect(m_Rgba);
+                if(m_XDetector.isBallOnScreen())
+                {
+                    //Approach ball
+                    m_XCommander.handleBall(m_XDetector.getBallCenter());
+                }
+                else
+                {
+                    //Look for ball
+                    m_XCommander.seekForBall();
+                }
             }
-            else
-            {
-                //Look for ball
-            }
+
+            //Showing statuses
+            Utils.drawString(m_Rgba, "Arduino: " + m_MsgFromArduino, 20, 40);
+            Utils.drawString(m_Rgba, "Command: " + m_XBluetooth.getPrevSentMsg(), 20, 70);
+            //--------------------------------------------------------------------------------------
         }
 
-        //Showing statuses
-        Utils.drawString(m_Rgba, m_MsgFromArduino, 20, 40);
+        //Test: Color detection
+
 
         return m_Rgba;
     }
