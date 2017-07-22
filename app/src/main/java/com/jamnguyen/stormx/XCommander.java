@@ -29,8 +29,51 @@ public class XCommander
 
     public void sendCommnand(String command)
     {
-        m_Bluetooth.send(command);
+		if(!m_Bluetooth.getPrevSentMsg().equals(command))
+		{
+			m_Bluetooth.send(command);
+		}
     }
 
-
+	public void handleBall(Point centerPoint)
+	{
+		//This function run when there's ball on screen
+		
+		//Ball's catchable
+        if(BallArea/ScreenArea >= CAUGHT_AREA)
+        {
+            //First: Stop
+            if(!m_Bluetooth.getPrevSentMsg().equals(CATCH_BALL))
+            {
+                sendCommnand(STOP);
+            }
+            //Second: Catch
+            else if(m_Bluetooth.getPrevSentMsg().equals(STOP))
+            {
+                //IM_Command = Config.CMD_BALL;
+            }
+        }
+        else
+        {
+            //Calibrating direction
+            if (centerPoint.x < MIDDLE_LINE && (MIDDLE_LINE - centerPoint.x) > MIDDLE_DELTA)
+            {
+                sendCommnand(TURN_LEFT);
+            } 
+			else if (centerPoint.x > MIDDLE_LINE && (centerPoint.x - MIDDLE_LINE) > MIDDLE_DELTA)
+            {
+				sendCommnand(TURN_RIGHT);
+            }
+            else
+            {
+                sendCommnand(MOVE_FORWARD);
+            }
+        }
+	}
+	
+	public void seekForBall()
+	{
+		sendCommnand(TURN_LEFT);
+	}
+	
 }
