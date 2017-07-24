@@ -5,7 +5,7 @@ import org.opencv.core.Point;
 public class XCommander
 {
     //DEFINES---------------------------------------------------------------------------------------
-
+    public static final boolean TEST_MODE_NO_BLUETOOTH = false;
 
     //To Arduino
     public static final String MOVE_FORWARD     = "F";
@@ -43,6 +43,9 @@ public class XCommander
 	public void handleBall(Point centerPoint)
 	{
 		//This function run when there's ball on screen
+
+        int tX = m_Detector.getTransposedX((int)centerPoint.y);
+        int tY = m_Detector.getTransposedY((int)centerPoint.x);
 		
 		//Ball's catchable
         if(m_Detector.getBallArea()/m_Detector.getScreenArea() >= XDetector.CAUGHT_AREA_RATIO)
@@ -61,11 +64,11 @@ public class XCommander
         else
         {
             //Calibrating direction
-            if (centerPoint.x < XDetector.MIDDLE_LINE && (XDetector.MIDDLE_LINE - centerPoint.x) > XDetector.MIDDLE_DELTA)
+            if (tX < m_Detector.getMiddleLine() && (m_Detector.getMiddleLine() - tX) > XDetector.MIDDLE_DELTA)
             {
                 sendCommnand(TURN_LEFT);
             } 
-			else if (centerPoint.x > XDetector.MIDDLE_LINE && (centerPoint.x - XDetector.MIDDLE_LINE) > XDetector.MIDDLE_DELTA)
+			else if (tX > m_Detector.getMiddleLine() && (tX - m_Detector.getMiddleLine()) > XDetector.MIDDLE_DELTA)
             {
 				sendCommnand(TURN_RIGHT);
             }

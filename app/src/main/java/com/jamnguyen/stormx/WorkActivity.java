@@ -150,7 +150,7 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
         m_Rgba = inputFrame.rgba();
 
         //If Bluetooth connection fail then there's nothing to do
-        if(m_isBluetoothConnected)
+//        if(m_isBluetoothConnected)
         {
             //Put all processing here---------------------------------------------------------------
 //            m_XDetector.circleDectect(inputFrame);

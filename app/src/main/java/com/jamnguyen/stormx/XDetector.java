@@ -22,12 +22,13 @@ import static org.opencv.imgproc.Imgproc.contourArea;
 
 public class XDetector
 {
-    public static final int BALL_DETECTION_BY_CIRCLE = 1;
-    public static final int BALL_DETECTION_BY_COLOR = 2;
+    public static boolean           USE_TRANSPOSE_MODE = true;
 
-    public static final double CAUGHT_AREA_RATIO    = 0.20;
-    public static final double MIDDLE_LINE          = 500;
-    public static final double MIDDLE_DELTA         = 120;
+    public static double            CAUGHT_AREA_RATIO    = 0.20;
+    public static int               MIDDLE_LINE;
+    public static final double      MIDDLE_DELTA         = 120;
+    public int                      SCREEN_WIDTH;
+    public int                      SCREEN_HEIGHT;
 
     private Context                 m_appContext;
 
@@ -49,6 +50,10 @@ public class XDetector
     private double                  m_screenArea;
     private Point                   m_midUpPoint;
     private Point                   m_midDownPoint;
+    private Point                   m_midUpLeftPoint;
+    private Point                   m_midDownLeftPoint;
+    private Point                   m_midUpRightPoint;
+    private Point                   m_midDownRightPoint;
 
     public XDetector(Context context)
     {
@@ -57,6 +62,8 @@ public class XDetector
 
     public void init(int screenWidth, int screenHeight)
     {
+        SCREEN_WIDTH = screenWidth;
+        SCREEN_HEIGHT = screenHeight;
         m_BlobDetectorPink = new ColorBlobDetector();
         m_BlobDetectorOrange = new ColorBlobDetector();
         m_Spectrum = new Mat();
@@ -68,8 +75,30 @@ public class XDetector
         m_isColorSelected = false;
         m_screenArea = screenWidth*screenHeight;
         m_ballArea = 0;
-        m_midUpPoint = new Point(MIDDLE_LINE, 0);
-        m_midDownPoint = new Point(MIDDLE_LINE, screenHeight);
+        if(USE_TRANSPOSE_MODE)
+        {
+            MIDDLE_LINE = SCREEN_HEIGHT/2;
+
+            m_midUpPoint = new Point(SCREEN_WIDTH, MIDDLE_LINE);
+            m_midUpLeftPoint = new Point(SCREEN_WIDTH, MIDDLE_LINE - MIDDLE_DELTA);
+            m_midUpRightPoint = new Point(SCREEN_WIDTH, MIDDLE_LINE + MIDDLE_DELTA);
+
+            m_midDownPoint = new Point(0, MIDDLE_LINE);
+            m_midDownLeftPoint = new Point(0, MIDDLE_LINE - MIDDLE_DELTA);
+            m_midDownRightPoint = new Point(0, MIDDLE_LINE + MIDDLE_DELTA);
+        }
+        else
+        {
+            MIDDLE_LINE = SCREEN_WIDTH/2;
+
+            m_midUpPoint = new Point(MIDDLE_LINE, 0);
+            m_midUpLeftPoint = new Point(MIDDLE_LINE - MIDDLE_DELTA, 0);
+            m_midUpRightPoint = new Point(MIDDLE_LINE + MIDDLE_DELTA, 0);
+
+            m_midDownPoint = new Point(MIDDLE_LINE, SCREEN_HEIGHT);
+            m_midDownLeftPoint = new Point(MIDDLE_LINE - MIDDLE_DELTA, SCREEN_HEIGHT);
+            m_midDownRightPoint = new Point(MIDDLE_LINE + MIDDLE_DELTA, SCREEN_HEIGHT);
+        }
     }
 
     //Circle detecting------------------------------------------------------------------------------
@@ -293,6 +322,11 @@ public class XDetector
         }
     }
 
+    public int getMiddleLine()
+    {
+        return MIDDLE_LINE;
+    }
+
     public double getBallArea()
     {
         return m_ballArea;
@@ -313,19 +347,20 @@ public class XDetector
         return m_isBallOnScreen;
     }
     //----------------------------------------------------------------------------------------------
+    public int getTransposedX(int yO)
+    {
+        return yO;
+    }
+
+    public int getTransposedY(int xO)
+    {
+        return (SCREEN_WIDTH - xO);
+    }
 
     public void drawForwardRange(Mat rgba)
     {
-        m_midUpPoint.x = MIDDLE_LINE;
-        m_midDownPoint.x = MIDDLE_LINE;
         Imgproc.line(rgba, m_midUpPoint, m_midDownPoint, new Scalar(255, 0, 0, 255));
-
-        m_midUpPoint.x = MIDDLE_LINE - MIDDLE_DELTA;
-        m_midDownPoint.x = MIDDLE_LINE - MIDDLE_DELTA;
-        Imgproc.line(rgba, m_midUpPoint, m_midDownPoint, new Scalar(255, 255, 0, 255));
-
-        m_midUpPoint.x = MIDDLE_LINE + MIDDLE_DELTA;
-        m_midDownPoint.x = MIDDLE_LINE + MIDDLE_DELTA;
-        Imgproc.line(rgba, m_midUpPoint, m_midDownPoint, new Scalar(255, 255, 0, 255));
+        Imgproc.line(rgba, m_midUpLeftPoint, m_midDownLeftPoint, new Scalar(255, 255, 0, 255));
+        Imgproc.line(rgba, m_midUpRightPoint, m_midDownRightPoint, new Scalar(255, 255, 0, 255));
     }
 }
