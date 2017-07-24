@@ -5,7 +5,6 @@ import org.opencv.core.Point;
 public class XCommander
 {
     //DEFINES---------------------------------------------------------------------------------------
-    public static final boolean TEST_MODE_NO_BLUETOOTH = false;
 
     //To Arduino
     public static final String MOVE_FORWARD     = "F";
@@ -25,11 +24,13 @@ public class XCommander
     //----------------------------------------------------------------------------------------------
     private XDetector m_Detector;
     private XBluetooth m_Bluetooth;
+    private boolean m_isBallHolding;
 
     public XCommander(XBluetooth BT, XDetector DT)
     {
         m_Bluetooth = BT;
         m_Detector = DT;
+        m_isBallHolding = false;
     }
 
     public void sendCommnand(String command)
@@ -59,6 +60,7 @@ public class XCommander
             else if(m_Bluetooth.getPrevSentMsg().equals(STOP))
             {
                 //IM_Command = Config.CMD_BALL;
+                m_isBallHolding = true;
             }
         }
         else
@@ -83,5 +85,14 @@ public class XCommander
 	{
 		sendCommnand(TURN_LEFT);
 	}
-	
+
+	public boolean isBallHolding()
+    {
+        return m_isBallHolding;
+    }
+
+    public void setBallHolding(boolean hold)
+    {
+        m_isBallHolding = hold;
+    }
 }

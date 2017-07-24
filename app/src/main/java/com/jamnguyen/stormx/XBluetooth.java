@@ -214,12 +214,12 @@ public class XBluetooth
     public void send(String s)
     {
         //First check to make sure thread created
-        if(!XCommander.TEST_MODE_NO_BLUETOOTH)
+
+        if (m_ConnectedThread != null)
         {
-            if (m_ConnectedThread != null) {
-                m_ConnectedThread.write(s);
-            }
+            m_ConnectedThread.write(s);
         }
+
         m_prevSentMsg = s;
     }
 

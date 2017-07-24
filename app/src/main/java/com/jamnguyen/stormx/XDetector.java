@@ -34,6 +34,7 @@ public class XDetector
 
     private ColorBlobDetector       m_BlobDetectorPink;
     private ColorBlobDetector       m_BlobDetectorOrange;
+    private ColorBlobDetector       m_BlobDetectorGreen;
     private Scalar                  m_BlobColorHsv;
     private Scalar                  m_BlobColorRgba;
     private boolean                 m_isColorSelected;
@@ -66,6 +67,7 @@ public class XDetector
         SCREEN_HEIGHT = screenHeight;
         m_BlobDetectorPink = new ColorBlobDetector();
         m_BlobDetectorOrange = new ColorBlobDetector();
+        m_BlobDetectorGreen = new ColorBlobDetector();
         m_Spectrum = new Mat();
         m_BlobColorRgba = new Scalar(255);
         m_BlobColorHsv = new Scalar(255);
@@ -239,22 +241,20 @@ public class XDetector
 
         // Calculate average color of touched region
 //        m_BlobColorHsv = Core.sumElems(touchedRegionHsv);
-        m_BlobColorHsv = new Scalar(233.0625, 183.109375, 225.0, 0.0);
 //        int pointCount = touchedRect.width*touchedRect.height;
 //        for (int i = 0; i < m_BlobColorHsv.val.length; i++)
 //            m_BlobColorHsv.val[i] /= pointCount;
 
-        m_BlobColorRgba = converScalarHsv2Rgba(m_BlobColorHsv);
-
-//        Log.i(TAG, "Touched rgba color: (" + mBlobColorRgba.val[0] + ", " + mBlobColorRgba.val[1] +
-//                ", " + mBlobColorRgba.val[2] + ", " + mBlobColorRgba.val[3] + ")");
+//        m_BlobColorRgba = converScalarHsv2Rgba(m_BlobColorHsv);
 
 //        Utils.toastLong("Touched HSV color: (" + m_BlobColorHsv.val[0] + ", " + m_BlobColorHsv.val[1] +
 //                ", " + m_BlobColorHsv.val[2] + ", " + m_BlobColorHsv.val[3] + ")", m_appContext);
 
         //Pink: 233.0625, 183.109375, 225.0
         //Orange: 13.640625, 193.3125, 231.578125
+        //Green: 13.640625, 193.3125, 231.578125
 
+        m_BlobColorHsv = new Scalar(233.0625, 183.109375, 225.0, 0.0);
         m_BlobDetectorPink.setHsvColor(m_BlobColorHsv);
         m_BlobColorHsv = new Scalar(13.640625, 193.3125, 231.578125, 0.0);
         m_BlobDetectorOrange.setHsvColor(m_BlobColorHsv);

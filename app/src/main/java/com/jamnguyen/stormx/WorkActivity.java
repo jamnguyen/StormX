@@ -154,22 +154,48 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
         {
             //Put all processing here---------------------------------------------------------------
 //            m_XDetector.circleDectect(inputFrame);
+
+            //Tap the screen to start
             if(m_XDetector.isColorSelected())
             {
                 //Show forward range
                 m_XDetector.drawForwardRange(m_Rgba);
 
                 m_XDetector.colorDetect(m_Rgba);
-                if(m_XDetector.isBallOnScreen())
+
+                if(!m_XCommander.isBallHolding())
                 {
-                    //Approach ball
-                    m_XCommander.handleBall(m_XDetector.getBallCenter());
+                    if (m_XDetector.isBallOnScreen())
+                    {
+                        //Approach ball
+                        m_XCommander.handleBall(m_XDetector.getBallCenter());
+                    }
+                    else
+                    {
+                        //Look for ball
+                        m_XCommander.seekForBall();
+                    }
                 }
                 else
                 {
-                    //Look for ball
-                    m_XCommander.seekForBall();
+                    //Look for goal
+                    if (m_XDetector.isBallOnScreen())
+                    {
+                        //Approach goal
+                        m_XCommander.handleGoal(m_XDetector.getBallCenter());
+                    }
+                    else
+                    {
+                        //Look for goal
+                        m_XCommander.seekForBall();
+                    }
                 }
+            }
+
+            if(m_MsgFromArduino.equals("P"))
+            {
+                //After pushing ball
+                m_XCommander.setBallHolding(false);
             }
 
             //Showing statuses
