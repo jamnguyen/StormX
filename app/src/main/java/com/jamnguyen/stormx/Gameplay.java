@@ -176,19 +176,25 @@ public class Gameplay
 	}
 	public void STATE_GO_GOAL_func()
 	{
-		if(m_ColorMessage == COLOR_ZERO)// Vi li do nao do mat focus goal
-		{
-			Car_Stop();
-			Switch_State(STATE_FIND_GOAL);
-			return;
+		switch(m_ColorMessage) {
+			case COLOR_ZERO:// dang follow ball ma bi mat focus
+				Car_Stop();
+				Switch_State(STATE_FIND_GOAL);
+				break;
+			case COLOR_NEAR:
+				Car_Stop();
+				Switch_State(STATE_RELEASE_BALL);
+				break;
+			case COLOR_LEFT:
+				Car_TurnLeft();
+				break;
+			case COLOR_RIGHT:
+				Car_TurnRight();
+				break;
+			case COLOR_MIDDLE:
+				Car_Forward();
+				break;
 		}
-		if((m_SwitchMessage & SWITCH_LEFT) != 0 || (m_SwitchMessage & SWITCH_RIGHT) != 0)
-		{
-			Car_Stop();
-			Switch_State(STATE_RELEASE_BALL);
-			return;
-		}
-		Car_Forward();
 	}
 	public void STATE_RELEASE_BALL_func()
 	{
