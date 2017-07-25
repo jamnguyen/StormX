@@ -200,6 +200,7 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
 						}
 					}
 				}
+				m_Game.Run();
                 /* if(!m_XCommander.isBallHolding())
                 {
                     if (m_XDetector.isBallOnScreen())
