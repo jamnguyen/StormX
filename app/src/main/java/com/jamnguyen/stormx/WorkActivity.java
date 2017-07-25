@@ -239,6 +239,7 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
             //Showing statuses
             Utils.drawString(m_Rgba, "Arduino: " + m_MsgFromArduino, 20, 40);
             Utils.drawString(m_Rgba, "Command: " + m_XBluetooth.getPrevSentMsg(), 20, 70);
+            Utils.drawString(m_Rgba, "Is detecting ball: " + m_XDetector.getDetectBall(), 20, 100);
             //--------------------------------------------------------------------------------------
         }
 

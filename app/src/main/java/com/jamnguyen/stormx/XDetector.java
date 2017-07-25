@@ -111,6 +111,18 @@ public class XDetector
             m_midDownLeftPoint = new Point(MIDDLE_LINE - MIDDLE_DELTA, SCREEN_HEIGHT);
             m_midDownRightPoint = new Point(MIDDLE_LINE + MIDDLE_DELTA, SCREEN_HEIGHT);
         }
+
+        //Set color
+        //Pink: 233.0625, 183.109375, 225.0
+        //Orange: 13.640625, 193.3125, 231.578125
+        //Green: 101.0625, 162.921875, 110.390625
+        //Green2: 83.828125, 198.8125, 118.359375
+        m_BlobColorHsv = new Scalar(233.0625, 183.109375, 225.0, 0.0);
+        m_BlobDetectorPink.setHsvColor(m_BlobColorHsv);
+        m_BlobColorHsv = new Scalar(13.640625, 193.3125, 231.578125, 0.0);
+        m_BlobDetectorOrange.setHsvColor(m_BlobColorHsv);
+        m_BlobColorHsv = new Scalar(101.0625, 162.921875, 110.390625, 0.0);
+        m_BlobDetectorGreen.setHsvColor(m_BlobColorHsv);
     }
 
     //Circle detecting------------------------------------------------------------------------------
@@ -184,16 +196,16 @@ public class XDetector
 		List<MatOfPoint> contours;
 		if(m_isDetectBall)
 		{
+            m_BlobDetectorPink.process(rgbaInput);
+            m_BlobDetectorOrange.process(rgbaInput);
 			contours = m_BlobDetectorPink.getContours();
 			contours.addAll(m_BlobDetectorOrange.getContours());
-			m_BlobDetectorPink.process(rgbaInput);
-			m_BlobDetectorOrange.process(rgbaInput);
 		}
 		else
 		{
+            m_BlobDetectorGreen.process(rgbaInput);
 			contours = m_BlobDetectorGreen.getContours();
 			// contours.addAll(m_BlobDetectorOrange.getContours());
-			m_BlobDetectorGreen.process(rgbaInput);
 		}
         
 
@@ -265,28 +277,29 @@ public class XDetector
 //        int pointCount = touchedRect.width*touchedRect.height;
 //        for (int i = 0; i < m_BlobColorHsv.val.length; i++)
 //            m_BlobColorHsv.val[i] /= pointCount;
-
-//        m_BlobColorRgba = converScalarHsv2Rgba(m_BlobColorHsv);
-
+//
+////        m_BlobColorRgba = converScalarHsv2Rgba(m_BlobColorHsv);
+//
 //        Utils.toastLong("Touched HSV color: (" + m_BlobColorHsv.val[0] + ", " + m_BlobColorHsv.val[1] +
 //                ", " + m_BlobColorHsv.val[2] + ", " + m_BlobColorHsv.val[3] + ")", m_appContext);
 
         //Pink: 233.0625, 183.109375, 225.0
         //Orange: 13.640625, 193.3125, 231.578125
-        //Green: 13.640625, 193.3125, 231.578125
-		if(m_isDetectBall)
-		{
-			m_BlobColorHsv = new Scalar(233.0625, 183.109375, 225.0, 0.0);
-			m_BlobDetectorPink.setHsvColor(m_BlobColorHsv);
-			m_BlobColorHsv = new Scalar(13.640625, 193.3125, 231.578125, 0.0);
-			m_BlobDetectorOrange.setHsvColor(m_BlobColorHsv);
-			Imgproc.resize(m_BlobDetectorPink.getSpectrum(), m_Spectrum, SPECTRUM_SIZE);
-		}
-		else
-		{
-			m_BlobColorHsv = new Scalar(13.640625, 193.3125, 231.578125, 0.0);
-			m_BlobDetectorGreen.setHsvColor(m_BlobColorHsv);
-		}
+        //Green: 101.0625, 162.921875, 110.390625
+        //Green2: 83.828125, 198.8125, 118.359375
+//		if(m_isDetectBall)
+//		{
+//			m_BlobColorHsv = new Scalar(233.0625, 183.109375, 225.0, 0.0);
+//			m_BlobDetectorPink.setHsvColor(m_BlobColorHsv);
+//			m_BlobColorHsv = new Scalar(13.640625, 193.3125, 231.578125, 0.0);
+//			m_BlobDetectorOrange.setHsvColor(m_BlobColorHsv);
+//			Imgproc.resize(m_BlobDetectorPink.getSpectrum(), m_Spectrum, SPECTRUM_SIZE);
+//		}
+//		else
+//		{
+//			m_BlobColorHsv = new Scalar(101.0625, 162.921875, 110.390625, 0.0);
+//			m_BlobDetectorGreen.setHsvColor(m_BlobColorHsv);
+//		}
 
         
 
@@ -320,7 +333,7 @@ public class XDetector
             }
         }
 
-        if(m_isColorSelected && index > -1)
+        if(index > -1)
         {
             m_ballArea = area;
         }

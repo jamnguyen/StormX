@@ -74,7 +74,7 @@ public class Gameplay
 	public void Switch_State(int state)
 	{
 		m_Detector.setDetectBall(true);
-		if(state == STATE_FIND_GOAL)
+		if(state == STATE_FIND_GOAL || state == STATE_GO_GOAL)
 		{
 			m_Detector.setDetectBall(false);
 		}
