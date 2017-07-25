@@ -58,7 +58,7 @@ public class XDetector
     private boolean                   m_isDetectBall;
     public void 	setDetectBall(boolean value)
 	{
-		m_isDetectBall = value
+		m_isDetectBall = value;
 	}
 	public boolean 	getDetectBall()
 	{
