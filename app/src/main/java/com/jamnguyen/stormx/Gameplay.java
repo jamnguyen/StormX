@@ -234,54 +234,60 @@ public class Gameplay
 			break;
 		}
 	}
-	
+	public void sendCommnand(String command)
+    {
+		if(!m_Bluetooth.getPrevSentMsg().equals(command))
+		{
+			m_Bluetooth.send(command);
+		}
+    }
 	//Action method of Car
 	public void Car_Stop()
 	{
-		m_Bluetooth.send(MESSEAGE_STOP);
+		sendCommnand(MESSEAGE_STOP);
 	}
 	public void Car_Rotate_Left()
 	{
-		m_Bluetooth.send(MESSEAGE_ROTATELEFT);
+		sendCommnand(MESSEAGE_ROTATELEFT);
 	}
 	public void Car_Rotate_Right()
 	{
-		m_Bluetooth.send(MESSEAGE_ROTATERIGHT);
+		sendCommnand(MESSEAGE_ROTATERIGHT);
 	}
 	public void Car_TurnLeft()
 	{
-		m_Bluetooth.send(MESSEAGE_TURNLEFT);
+		sendCommnand(MESSEAGE_TURNLEFT);
 	}
 	public void Car_TurnRight()
 	{
-		m_Bluetooth.send(MESSEAGE_TURNRIGHT);
+		sendCommnand(MESSEAGE_TURNRIGHT);
 	}
 	public void Car_Forward()
 	{
-		m_Bluetooth.send(MESSEAGE_FORWARDFAST);
+		sendCommnand(MESSEAGE_FORWARDFAST);
 	}
 	public void Car_Backward()
 	{
-		m_Bluetooth.send(MESSEAGE_BACKWARD);
+		sendCommnand(MESSEAGE_BACKWARD);
 	}
 	public void Motor_Blow_In()
 	{
-		m_Bluetooth.send(MESSEAGE_MOTOR_BLOW_IN);
+		sendCommnand(MESSEAGE_MOTOR_BLOW_IN);
 	}
 	public void Motor_Blow_Out()
 	{
-		m_Bluetooth.send(MESSEAGE_MOTOR_BLOW_OUT);
+		sendCommnand(MESSEAGE_MOTOR_BLOW_OUT);
 	}
 	public void Motor_Stop()
 	{
-		m_Bluetooth.send(MESSEAGE_MOTOR_STOP);
+		sendCommnand(MESSEAGE_MOTOR_STOP);
 	}
 	public void Servo1_Down()
 	{
-		m_Bluetooth.send(MESSEAGE_SERVO1_DOWN);
+		sendCommnand(MESSEAGE_SERVO1_DOWN);
 	}
 	public void Servo1_Up()
 	{
-		m_Bluetooth.send(MESSEAGE_SERVO1_UP);
+		sendCommnand(MESSEAGE_SERVO1_UP);
 	}
 }
