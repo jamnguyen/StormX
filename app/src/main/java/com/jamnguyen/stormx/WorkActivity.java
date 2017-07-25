@@ -49,7 +49,7 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
     private Mat             m_Rgba;
 
 
-
+	private Gameplay m_Game;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this)
     {
@@ -78,6 +78,7 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
         setContentView(R.layout.activity_work);
 
         m_MsgFromArduino = "<Nothing received>";
+		
         //Camera
         m_OpenCvCameraView = (XCameraView) findViewById(R.id.activity_java_surface_view);
         m_OpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
@@ -92,10 +93,11 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
 
         m_XBluetooth = new XBluetooth(address, getApplicationContext(), m_Handler);
         m_XBluetooth.init();
-
+		
         m_XDetector = new XDetector(getApplicationContext());
 
-        m_XCommander = new XCommander(m_XBluetooth, m_XDetector);
+		m_Game = new Gameplay(m_XBluetooth, m_XDetector);		
+        // m_XCommander = new XCommander(m_XBluetooth, m_XDetector);
     }
 
     @Override
@@ -162,8 +164,43 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
                 m_XDetector.drawForwardRange(m_Rgba);
 
                 m_XDetector.colorDetect(m_Rgba);
-
-                if(!m_XCommander.isBallHolding())
+				if (!m_XDetector.isBallOnScreen())
+				{
+					m_Game.SetColorMessage(Gameplay.COLOR_ZERO);
+				}
+				else
+				{
+					if(!m_XDetector.getDetectBall())
+					{
+						m_Game.SetColorMessage(Gameplay.COLOR_MIDDLE);
+					}
+					else
+					{
+						if(m_XDetector.getBallArea()/m_XDetector.getScreenArea() >= XDetector.CAUGHT_AREA_RATIO)
+						{
+							m_Game.SetColorMessage(Gameplay.COLOR_NEAR);
+						}
+						else
+						{
+							int tX = m_XDetector.getTransposedX((int)m_XDetector.getBallCenter().y);
+							int tY = m_XDetector.getTransposedY((int)m_XDetector.getBallCenter().x);
+							//Calibrating direction
+							if (tX < m_XDetector.getMiddleLine() && (m_XDetector.getMiddleLine() - tX) > XDetector.MIDDLE_DELTA)
+							{
+								m_Game.SetColorMessage(Gameplay.COLOR_LEFT);
+							} 
+							else if (tX > m_XDetector.getMiddleLine() && (tX - m_XDetector.getMiddleLine()) > XDetector.MIDDLE_DELTA)
+							{
+								m_Game.SetColorMessage(Gameplay.COLOR_RIGHT);
+							}
+							else
+							{
+								m_Game.SetColorMessage(Gameplay.COLOR_MIDDLE);
+							}
+						}
+					}
+				}
+                /* if(!m_XCommander.isBallHolding())
                 {
                     if (m_XDetector.isBallOnScreen())
                     {
@@ -189,14 +226,14 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
                         //Look for goal
                         m_XCommander.seekForBall();
                     }
-                }
+                } */
             }
 
-            if(m_MsgFromArduino.equals("P"))
+            /* if(m_MsgFromArduino.equals("P"))
             {
                 //After pushing ball
                 m_XCommander.setBallHolding(false);
-            }
+            } */
 
             //Showing statuses
             Utils.drawString(m_Rgba, "Arduino: " + m_MsgFromArduino, 20, 40);

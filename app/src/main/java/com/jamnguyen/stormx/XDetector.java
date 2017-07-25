@@ -55,10 +55,20 @@ public class XDetector
     private Point                   m_midDownLeftPoint;
     private Point                   m_midUpRightPoint;
     private Point                   m_midDownRightPoint;
+    private boolean                   m_isDetectBall;
+    public void 	setDetectBall(boolean value)
+	{
+		m_isDetectBall = value
+	}
+	public boolean 	getDetectBall()
+	{
+		return m_isDetectBall;
+	}
 
     public XDetector(Context context)
     {
         m_appContext = context;
+		m_isDetectBall = true;
     }
 
     public void init(int screenWidth, int screenHeight)
@@ -171,10 +181,21 @@ public class XDetector
     //Color detecting-------------------------------------------------------------------------------
     public Mat colorDetect(Mat rgbaInput)
     {
-        m_BlobDetectorPink.process(rgbaInput);
-        m_BlobDetectorOrange.process(rgbaInput);
-        List<MatOfPoint> contours = m_BlobDetectorPink.getContours();
-        contours.addAll(m_BlobDetectorOrange.getContours());
+		List<MatOfPoint> contours;
+		if(m_isDetectBall)
+		{
+			contours = m_BlobDetectorPink.getContours();
+			contours.addAll(m_BlobDetectorOrange.getContours());
+			m_BlobDetectorPink.process(rgbaInput);
+			m_BlobDetectorOrange.process(rgbaInput);
+		}
+		else
+		{
+			contours = m_BlobDetectorGreen.getContours();
+			// contours.addAll(m_BlobDetectorOrange.getContours());
+			m_BlobDetectorGreen.process(rgbaInput);
+		}
+        
 
         Imgproc.drawContours(rgbaInput, contours, -1, CONTOUR_COLOR);
 
@@ -253,13 +274,21 @@ public class XDetector
         //Pink: 233.0625, 183.109375, 225.0
         //Orange: 13.640625, 193.3125, 231.578125
         //Green: 13.640625, 193.3125, 231.578125
+		if(m_isDetectBall)
+		{
+			m_BlobColorHsv = new Scalar(233.0625, 183.109375, 225.0, 0.0);
+			m_BlobDetectorPink.setHsvColor(m_BlobColorHsv);
+			m_BlobColorHsv = new Scalar(13.640625, 193.3125, 231.578125, 0.0);
+			m_BlobDetectorOrange.setHsvColor(m_BlobColorHsv);
+			Imgproc.resize(m_BlobDetectorPink.getSpectrum(), m_Spectrum, SPECTRUM_SIZE);
+		}
+		else
+		{
+			m_BlobColorHsv = new Scalar(13.640625, 193.3125, 231.578125, 0.0);
+			m_BlobDetectorGreen.setHsvColor(m_BlobColorHsv);
+		}
 
-        m_BlobColorHsv = new Scalar(233.0625, 183.109375, 225.0, 0.0);
-        m_BlobDetectorPink.setHsvColor(m_BlobColorHsv);
-        m_BlobColorHsv = new Scalar(13.640625, 193.3125, 231.578125, 0.0);
-        m_BlobDetectorOrange.setHsvColor(m_BlobColorHsv);
-
-        Imgproc.resize(m_BlobDetectorPink.getSpectrum(), m_Spectrum, SPECTRUM_SIZE);
+        
 
         m_isColorSelected = true;
 
