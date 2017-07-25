@@ -89,6 +89,7 @@ public class Gameplay
 	{
 		m_CurrentTime = 0;
 		m_ColorMessage = 0;
+		Switch_State(STATE_FIND_BALL);
 	}
 	public void Game_Sleep(long time)
 	{
