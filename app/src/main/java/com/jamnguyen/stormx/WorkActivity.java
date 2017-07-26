@@ -263,7 +263,7 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
                     String readMessage = null;
                     try
                     {
-                        readMessage = new String((byte[]) msg.obj, "UTF-8");
+                        readMessage = new String((byte[]) msg.obj, "US-ASCII");
                         m_MsgFromArduino = readMessage;
                     }
                     catch (UnsupportedEncodingException e) {

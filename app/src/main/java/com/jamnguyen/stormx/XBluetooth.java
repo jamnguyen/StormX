@@ -138,8 +138,11 @@ public class XBluetooth
 
         public void run()
         {
-            byte[] buffer = new byte[1024];  //Buffer store for the stream
-            int bytes;                       //Bytes returned from read()
+            final byte delimiter = 10;          //New line character
+
+            byte[] readBuffer = new byte[1024]; //Buffer store for the stream
+            int bytesAvailable;                 //Bytes returned from read()
+            int readBufferPosition = 0;         //Reading current position
 
             //Keep listening to the InputStream until an exception occurs
             while (true)
@@ -147,17 +150,40 @@ public class XBluetooth
                 try
                 {
                     //How many bytes are ready to be read?
-                    bytes = mmInStream.available();
-                    if(bytes != 0)
+                    bytesAvailable = mmInStream.available();
+                    if(bytesAvailable > 0)
                     {
+
+                        byte[] packetBytes = new byte[bytesAvailable];
+                        mmInStream.read(packetBytes);
+                        for(int i=0; i<bytesAvailable; i++)
+                        {
+                            byte b = packetBytes[i];
+                            if(b == delimiter)
+                            {
+                                readBufferPosition--;
+                                byte[] encodedBytes = new byte[readBufferPosition];
+                                System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
+//                                final String data = new String(encodedBytes, "US-ASCII");
+                                readBufferPosition = 0;
+
+                                m_appHandler.obtainMessage(MESSAGE_READ, readBufferPosition, -1, encodedBytes).sendToTarget();
+                                break;
+                            }
+                            else
+                            {
+                                readBuffer[readBufferPosition++] = b;
+                            }
+                        }
+
                         //Pause and wait for rest of data.
                         //Adjust this depending on sending speed.
-                        SystemClock.sleep(100);
+//                        SystemClock.sleep(100);
                         //Record how many bytes we actually read
-                        bytes = mmInStream.available();
-                        bytes = mmInStream.read(buffer, 0, bytes);
+//                        bytes = mmInStream.available();
+//                        bytes = mmInStream.read(buffer, 0, bytes);
                         //Send the obtained bytes to the UI activity
-                        m_appHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer).sendToTarget();
+//                        m_appHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer).sendToTarget();
                     }
                 }
                 catch (IOException e)
