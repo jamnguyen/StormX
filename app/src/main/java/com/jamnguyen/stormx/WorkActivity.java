@@ -93,11 +93,6 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
 
         m_XBluetooth = new XBluetooth(address, getApplicationContext(), m_Handler);
         m_XBluetooth.init();
-		
-        m_XDetector = new XDetector(getApplicationContext());
-
-		m_Game = new Gameplay(m_XBluetooth, m_XDetector);		
-        // m_XCommander = new XCommander(m_XBluetooth, m_XDetector);
     }
 
     @Override
@@ -139,7 +134,10 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
     public void onCameraViewStarted(int width, int height)
     {
         m_Rgba = new Mat(height, width, CvType.CV_8UC4);
-        m_XDetector.init(width, height);
+        m_XDetector = new XDetector(getApplicationContext(), width, height);
+
+        m_Game = new Gameplay(m_XBluetooth, m_XDetector);
+        // m_XCommander = new XCommander(m_XBluetooth, m_XDetector);
     }
     public void onCameraViewStopped()
     {
@@ -158,76 +156,69 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
 //            m_XDetector.circleDectect(inputFrame);
 
             //Tap the screen to start
-            if(m_XDetector.isColorSelected())
+            if(Gameplay.ANDROID_STARTED)
             {
-                //Show forward range
-                m_XDetector.drawForwardRange(m_Rgba);
-
-                m_XDetector.colorDetect(m_Rgba);
-				if (!m_XDetector.isBallOnScreen())
-				{
-					m_Game.SetColorMessage(Gameplay.COLOR_ZERO);
-				}
-				else
-				{
-					if(!m_XDetector.getDetectBall())
-					{
-						m_Game.SetColorMessage(Gameplay.COLOR_MIDDLE);
-					}
-					else
-					{
-						if(m_XDetector.getBallArea()/m_XDetector.getScreenArea() >= XDetector.CAUGHT_AREA_RATIO)
-						{
-							m_Game.SetColorMessage(Gameplay.COLOR_NEAR);
-						}
-						else
-						{
-							int tX = m_XDetector.getTransposedX((int)m_XDetector.getBallCenter().y);
-							int tY = m_XDetector.getTransposedY((int)m_XDetector.getBallCenter().x);
-							//Calibrating direction
-							if (tX < m_XDetector.getMiddleLine() && (m_XDetector.getMiddleLine() - tX) > XDetector.MIDDLE_DELTA)
-							{
-								m_Game.SetColorMessage(Gameplay.COLOR_LEFT);
-							} 
-							else if (tX > m_XDetector.getMiddleLine() && (tX - m_XDetector.getMiddleLine()) > XDetector.MIDDLE_DELTA)
-							{
-								m_Game.SetColorMessage(Gameplay.COLOR_RIGHT);
-							}
-							else
-							{
-								m_Game.SetColorMessage(Gameplay.COLOR_MIDDLE);
-							}
-						}
-					}
-				}
-				m_Game.Run();
-                /* if(!m_XCommander.isBallHolding())
+                if(!Gameplay.ANDROID_INITIALIZED)
                 {
-                    if (m_XDetector.isBallOnScreen())
-                    {
-                        //Approach ball
-                        m_XCommander.handleBall(m_XDetector.getBallCenter());
-                    }
-                    else
-                    {
-                        //Look for ball
-                        m_XCommander.seekForBall();
-                    }
+                    m_Game.STATE_INIT_func();
                 }
                 else
                 {
-                    //Look for goal
-                    if (m_XDetector.isBallOnScreen())
+                    //Show forward range
+                    m_XDetector.drawForwardRange(m_Rgba);
+
+                    m_XDetector.colorDetect(m_Rgba);
+                    if (!m_XDetector.isBallOnScreen()) {
+                        m_Game.SetColorMessage(Gameplay.COLOR_ZERO);
+                    } else {
+                        if (!m_XDetector.getDetectBall()) {
+                            m_Game.SetColorMessage(Gameplay.COLOR_MIDDLE);
+                        } else {
+                            if (m_XDetector.getBallArea() / m_XDetector.getScreenArea() >= XDetector.CAUGHT_AREA_RATIO) {
+                                m_Game.SetColorMessage(Gameplay.COLOR_NEAR);
+                            } else {
+                                int tX = m_XDetector.getTransposedX((int) m_XDetector.getBallCenter().y);
+                                int tY = m_XDetector.getTransposedY((int) m_XDetector.getBallCenter().x);
+                                //Calibrating direction
+                                if (tX < m_XDetector.getMiddleLine() && (m_XDetector.getMiddleLine() - tX) > XDetector.MIDDLE_DELTA) {
+                                    m_Game.SetColorMessage(Gameplay.COLOR_LEFT);
+                                } else if (tX > m_XDetector.getMiddleLine() && (tX - m_XDetector.getMiddleLine()) > XDetector.MIDDLE_DELTA) {
+                                    m_Game.SetColorMessage(Gameplay.COLOR_RIGHT);
+                                } else {
+                                    m_Game.SetColorMessage(Gameplay.COLOR_MIDDLE);
+                                }
+                            }
+                        }
+                    }
+                    m_Game.Run();
+                    /* if(!m_XCommander.isBallHolding())
                     {
-                        //Approach goal
-                        m_XCommander.handleGoal(m_XDetector.getBallCenter());
+                        if (m_XDetector.isBallOnScreen())
+                        {
+                            //Approach ball
+                            m_XCommander.handleBall(m_XDetector.getBallCenter());
+                        }
+                        else
+                        {
+                            //Look for ball
+                            m_XCommander.seekForBall();
+                        }
                     }
                     else
                     {
                         //Look for goal
-                        m_XCommander.seekForBall();
-                    }
-                } */
+                        if (m_XDetector.isBallOnScreen())
+                        {
+                            //Approach goal
+                            m_XCommander.handleGoal(m_XDetector.getBallCenter());
+                        }
+                        else
+                        {
+                            //Look for goal
+                            m_XCommander.seekForBall();
+                        }
+                    } */
+                }
             }
 
             /* if(m_MsgFromArduino.equals("P"))

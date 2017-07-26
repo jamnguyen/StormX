@@ -50,7 +50,10 @@ public class Gameplay
 	public static final int TIME_FOR_BLOW_IN = 500;
 	public static final int TIME_FOR_SERVO1_UP = 200;
 	public static final int TIME_FOR_CAR_BACKWARD = 200;
-	
+
+	public static boolean ANDROID_STARTED = false;
+	public static boolean ANDROID_INITIALIZED = false;
+
 	public Gameplay(){
 		m_Bluetooth = null;
 	}
@@ -58,8 +61,6 @@ public class Gameplay
     {
         m_Bluetooth = BT;
         m_Detector = DT;
-		m_CurrentTime = 0;
-		m_ColorMessage = 0;
 		m_State = STATE_INIT;
     }
 	// public static Gameplay getInstance()
@@ -89,7 +90,9 @@ public class Gameplay
 	{
 		m_CurrentTime = 0;
 		m_ColorMessage = 0;
+		m_Detector.init();
 		Switch_State(STATE_FIND_BALL);
+		ANDROID_INITIALIZED = true;
 	}
 	public void Game_Sleep(long time)
 	{
@@ -289,5 +292,15 @@ public class Gameplay
 	public void Servo1_Up()
 	{
 		sendCommnand(MESSEAGE_SERVO1_UP);
+	}
+
+	public static void setAndroidStarted(boolean val)
+	{
+		ANDROID_STARTED = val;
+	}
+
+	public static void setAndroidInitialized(boolean val)
+	{
+		ANDROID_INITIALIZED = val;
 	}
 }

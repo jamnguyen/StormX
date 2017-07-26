@@ -37,7 +37,6 @@ public class XDetector
     private ColorBlobDetector       m_BlobDetectorGreen;
     private Scalar                  m_BlobColorHsv;
     private Scalar                  m_BlobColorRgba;
-    private boolean                 m_isColorSelected;
     private Mat                     m_Spectrum;
     private MatOfPoint              m_ballContour;
     private Size                    SPECTRUM_SIZE;
@@ -55,7 +54,10 @@ public class XDetector
     private Point                   m_midDownLeftPoint;
     private Point                   m_midUpRightPoint;
     private Point                   m_midDownRightPoint;
-    private boolean                   m_isDetectBall;
+    private boolean                 m_isDetectBall;
+
+
+
     public void 	setDetectBall(boolean value)
 	{
 		m_isDetectBall = value;
@@ -65,16 +67,12 @@ public class XDetector
 		return m_isDetectBall;
 	}
 
-    public XDetector(Context context)
+    public XDetector(Context context, int screenWidth, int screenHeight)
     {
         m_appContext = context;
-		m_isDetectBall = true;
-    }
-
-    public void init(int screenWidth, int screenHeight)
-    {
         SCREEN_WIDTH = screenWidth;
         SCREEN_HEIGHT = screenHeight;
+
         m_BlobDetectorPink = new ColorBlobDetector();
         m_BlobDetectorOrange = new ColorBlobDetector();
         m_BlobDetectorGreen = new ColorBlobDetector();
@@ -84,9 +82,8 @@ public class XDetector
         SPECTRUM_SIZE = new Size(200, 64);
         CONTOUR_COLOR = new Scalar(255,0,0,255);
         CIRLCE_COLOR = new Scalar(0, 0, 255, 255);
-        m_isColorSelected = false;
         m_screenArea = screenWidth*screenHeight;
-        m_ballArea = 0;
+
         if(USE_TRANSPOSE_MODE)
         {
             MIDDLE_LINE = SCREEN_HEIGHT/2;
@@ -123,6 +120,12 @@ public class XDetector
         m_BlobDetectorOrange.setHsvColor(m_BlobColorHsv);
         m_BlobColorHsv = new Scalar(101.0625, 162.921875, 110.390625, 0.0);
         m_BlobDetectorGreen.setHsvColor(m_BlobColorHsv);
+    }
+
+    public void init()
+    {
+        m_isDetectBall = true;
+        m_ballArea = 0;
     }
 
     //Circle detecting------------------------------------------------------------------------------
@@ -301,9 +304,18 @@ public class XDetector
 //			m_BlobDetectorGreen.setHsvColor(m_BlobColorHsv);
 //		}
 
-        
 
-        m_isColorSelected = true;
+        if(!Gameplay.ANDROID_STARTED)
+        {
+            Utils.toastShort("ANDROID STARTED", m_appContext);
+            Gameplay.setAndroidStarted(true);
+            Gameplay.setAndroidInitialized(false);
+        }
+        else
+        {
+            Utils.toastShort("ANDROID STOP", m_appContext);
+            Gameplay.setAndroidStarted(false);
+        }
 
         touchedRegionRgba.release();
         touchedRegionHsv.release();
@@ -379,10 +391,6 @@ public class XDetector
         return m_screenArea;
     }
 
-    public boolean isColorSelected()
-    {
-        return m_isColorSelected;
-    }
 
     public boolean isBallOnScreen()
     {
