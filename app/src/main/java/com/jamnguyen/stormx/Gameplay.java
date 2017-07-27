@@ -1,4 +1,7 @@
 package com.jamnguyen.stormx;
+import android.content.Context;
+import android.util.Log;
+
 import org.opencv.core.Point;
 public class Gameplay
 {
@@ -28,6 +31,8 @@ public class Gameplay
     public static final int NUM_BALL = 1;
 	private XDetector m_Detector;
     private XBluetooth m_Bluetooth;
+	private XVectorDetection m_VectorDetect = null;
+    private int[] orientations;
 	private int m_SwitchMessage = 0;
 	private int m_ColorMessage = 0;
 	public static final int COLOR_ZERO = 0;//Ko nhin thay ball
@@ -57,10 +62,11 @@ public class Gameplay
 	public Gameplay(){
 		m_Bluetooth = null;
 	}
-	public Gameplay(XBluetooth BT, XDetector DT)
+	public Gameplay(XBluetooth BT, XDetector DT, Context context)
     {
         m_Bluetooth = BT;
         m_Detector = DT;
+		m_VectorDetect = new XVectorDetection(context);
 		m_State = STATE_INIT;
     }
 	// public static Gameplay getInstance()
@@ -91,13 +97,24 @@ public class Gameplay
 		m_CurrentTime = 0;
 		m_ColorMessage = 0;
 		m_Detector.init();
-		Switch_State(STATE_FIND_BALL);
+        //Set GOAL vector
+        Log.d("dung.levan","STATE_INIT_func");
+        orientations = new int[3];
+        orientations[0] = m_VectorDetect.getX();
+        orientations[1] = m_VectorDetect.getY();
+        orientations[2] = m_VectorDetect.getZ();
+        Log.d("dung.levan","orientations " + orientations[0] + " - " + orientations[1] + " - " + orientations[2]);
+		//Switch_State(STATE_FIND_BALL);
+		Switch_State(STATE_GO_GOAL);
 		ANDROID_INITIALIZED = true;
 	}
 	public void Game_Sleep(long time)
-	{
+    {
 		try {
-			Thread.sleep(time);
+            for (int i = 0; i < time/10; i++){
+                Thread.sleep(10);
+            }
+            Thread.sleep(time - (time/10));
 		}catch (Exception ex)
 		{}
 		// m_CurrentTime = System.currentTimeMillis();
@@ -179,6 +196,22 @@ public class Gameplay
 	}
 	public void STATE_GO_GOAL_func()
 	{
+        Log.d("dung.levan","STATE_GO_GOAL_func orientations " + orientations[0] + " - " + orientations[1] + " - " + orientations[2]);
+        Log.d("dung.levan","STATE_GO_GOAL_func orientations " + m_VectorDetect.getX() + " - " + m_VectorDetect.getY() + " - " + m_VectorDetect.getZ());
+        if (m_VectorDetect.getX() < orientations[0] - 5 ){
+            Log.d("dung.levan","right");
+            //Car_Rotate_Right();
+            Car_TurnRight();
+        } else if (m_VectorDetect.getX() > orientations[0] + 5) {
+            Log.d("dung.levan","left");
+            Car_TurnLeft();
+            //Car_Rotate_Left();
+        } else
+        {
+            Log.d("dung.levan","forward");
+            Car_Forward();
+        }
+        if (true) return; //only for test purpose, remove when finish
 		switch(m_ColorMessage) {
 			case COLOR_ZERO:// dang follow ball ma bi mat focus
 				Car_Stop();

@@ -18,6 +18,7 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.imgproc.Moments;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -45,7 +46,7 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
     private XCommander      m_XCommander;
     private Handler         m_Handler;                  //Main handler that will receive callback notifications
     private String          m_MsgFromArduino;
-
+    private Context         context;
     private Mat             m_Rgba;
 
 
@@ -90,8 +91,8 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
 
         //Init handler for message from XBluetooth
         initHandler();
-
-        m_XBluetooth = new XBluetooth(address, getApplicationContext(), m_Handler);
+        context = getApplicationContext();
+        m_XBluetooth = new XBluetooth(address, context, m_Handler);
         m_XBluetooth.init();
     }
 
@@ -134,9 +135,9 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
     public void onCameraViewStarted(int width, int height)
     {
         m_Rgba = new Mat(height, width, CvType.CV_8UC4);
-        m_XDetector = new XDetector(getApplicationContext(), width, height);
+        m_XDetector = new XDetector(context, width, height);
 
-        m_Game = new Gameplay(m_XBluetooth, m_XDetector);
+        m_Game = new Gameplay(m_XBluetooth, m_XDetector, context);
         // m_XCommander = new XCommander(m_XBluetooth, m_XDetector);
     }
     public void onCameraViewStopped()
@@ -267,12 +268,12 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
                 {
                     if(msg.arg1 == 1)
                     {
-                        Utils.toastShort("Connected to Device: " + (msg.obj), getApplicationContext());
+                        Utils.toastShort("Connected to Device: " + (msg.obj),context);
                         m_isBluetoothConnected = true;
                     }
                     else
                     {
-                        Utils.toastShort("Connection Failed", getApplicationContext());
+                        Utils.toastShort("Connection Failed", context);
                     }
                 }
             }
