@@ -10,10 +10,7 @@ public class Vector3d {
 	protected double x;
 	protected double y;
 	protected double z;
-	public Vector3d()
-	{
-		
-	}
+
     public Vector3d(double x, double y, double z)
     {
         this.x = x;
@@ -40,7 +37,9 @@ public class Vector3d {
      */
     public Vector3d(Vector3d v1)
     {
-        this = v1;
+        this.x = v1.getX();
+        this.y = v1.getY();
+        this.z = v1.getZ();
     }
 
 
@@ -168,10 +167,11 @@ public class Vector3d {
 	{
 		return z;
 	}
-	public double setVector3d(Vector3d v)
+	public void setVector3d(Vector3d v)
 	{
 		this.x = v.getX();
 		this.y = v.getY();
 		this.z = v.getZ();
+
 	}
 }

@@ -101,7 +101,7 @@ public class Gameplay
 		m_Detector.init();
         //Set GOAL vector
         Log.d("dung.levan","STATE_INIT_func");
-		m_VectorInit = new Vector3d(m_VectorDetect.getX(), m_VectorDetect.getX(), m_VectorDetect.getX());
+		m_VectorInit = new Vector3d((double)m_VectorDetect.getX(), (double)m_VectorDetect.getY(), (double)m_VectorDetect.getZ());
         Log.d("dung.levan","orientations " + m_VectorDetect.getX() + " - " + m_VectorDetect.getY() + " - " + m_VectorDetect.getZ());
 		// Switch_State(STATE_FIND_BALL);
 		Switch_State(STATE_FIND_GOAL);
@@ -176,16 +176,21 @@ public class Gameplay
 	}
 	public void STATE_FIND_GOAL_func()
 	{
-		double degree = Math.toDegrees(m_VectorDetect.angle(m_VectorInit));
+		double degree = Math.toDegrees(new Vector3d((double)m_VectorDetect.getX(), (double)m_VectorDetect.getY(), (double)m_VectorDetect.getZ()).angle(m_VectorInit));
+		Log.d("dung.levan","degree" + degree);
 		if(degree > 0.0 + DEGREE_ESP && degree <= 180.0)
 		{
+			Log.d("dung.levan","right");
 			Car_Rotate_Right();
 		}
 		else if((degree > 180.0 && degree < 360.0 - DEGREE_ESP) || (degree < - DEGREE_ESP && degree > -180.0))
 		{
+			Log.d("dung.levan","left");
 			Car_Rotate_Left();
 		}
+		else
 		{
+			Log.d("dung.levan","stop");
 			Car_Stop();
 		}
 		if(true)
@@ -206,7 +211,7 @@ public class Gameplay
         // }
 	}
 	public void STATE_GO_GOAL_func()
-	{
+	{/*
 		if(m_ColorMessage == COLOR_NEAR)
 		{
 			Car_Stop();
@@ -226,7 +231,7 @@ public class Gameplay
 			{
 				Car_Forward();
 			}
-		}
+		}*/
 	}
 	public void STATE_RELEASE_BALL_func()
 	{
