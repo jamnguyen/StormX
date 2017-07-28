@@ -171,25 +171,26 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
                     m_XDetector.colorDetect(m_Rgba);
                     if (!m_XDetector.isBallOnScreen()) {
                         m_Game.SetColorMessage(Gameplay.COLOR_ZERO);
-                    } else {
-                        if (!m_XDetector.getDetectBall()) {
-                            m_Game.SetColorMessage(Gameplay.COLOR_MIDDLE);
-                        } else {
-                            if (m_XDetector.getBallArea() / m_XDetector.getScreenArea() >= XDetector.CAUGHT_AREA_RATIO) {
-                                m_Game.SetColorMessage(Gameplay.COLOR_NEAR);
-                            } else {
-                                int tX = m_XDetector.getTransposedX((int) m_XDetector.getBallCenter().y);
-                                int tY = m_XDetector.getTransposedY((int) m_XDetector.getBallCenter().x);
-                                //Calibrating direction
-                                if (tX < m_XDetector.getMiddleLine() && (m_XDetector.getMiddleLine() - tX) > XDetector.MIDDLE_DELTA) {
-                                    m_Game.SetColorMessage(Gameplay.COLOR_LEFT);
-                                } else if (tX > m_XDetector.getMiddleLine() && (tX - m_XDetector.getMiddleLine()) > XDetector.MIDDLE_DELTA) {
-                                    m_Game.SetColorMessage(Gameplay.COLOR_RIGHT);
-                                } else {
-                                    m_Game.SetColorMessage(Gameplay.COLOR_MIDDLE);
-                                }
-                            }
-                        }
+                    } 
+					else 
+					{
+                        if (m_XDetector.getBallArea() / m_XDetector.getScreenArea() >= XDetector.CAUGHT_AREA_RATIO) 
+						{
+							m_Game.SetColorMessage(Gameplay.COLOR_NEAR);
+						} 
+						else 
+						{
+							int tX = m_XDetector.getTransposedX((int) m_XDetector.getBallCenter().y);
+							int tY = m_XDetector.getTransposedY((int) m_XDetector.getBallCenter().x);
+							//Calibrating direction
+							if (tX < m_XDetector.getMiddleLine() && (m_XDetector.getMiddleLine() - tX) > XDetector.MIDDLE_DELTA) {
+								m_Game.SetColorMessage(Gameplay.COLOR_LEFT);
+							} else if (tX > m_XDetector.getMiddleLine() && (tX - m_XDetector.getMiddleLine()) > XDetector.MIDDLE_DELTA) {
+								m_Game.SetColorMessage(Gameplay.COLOR_RIGHT);
+							} else {
+								m_Game.SetColorMessage(Gameplay.COLOR_MIDDLE);
+							}
+						}
                     }
                     m_Game.Run();
                     /* if(!m_XCommander.isBallHolding())

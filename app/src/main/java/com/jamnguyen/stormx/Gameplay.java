@@ -104,8 +104,8 @@ public class Gameplay
         orientations[1] = m_VectorDetect.getY();
         orientations[2] = m_VectorDetect.getZ();
         Log.d("dung.levan","orientations " + orientations[0] + " - " + orientations[1] + " - " + orientations[2]);
-		//Switch_State(STATE_FIND_BALL);
-		Switch_State(STATE_GO_GOAL);
+		Switch_State(STATE_FIND_BALL);
+		// Switch_State(STATE_GO_GOAL);
 		ANDROID_INITIALIZED = true;
 	}
 	public void Game_Sleep(long time)
@@ -177,65 +177,46 @@ public class Gameplay
 	}
 	public void STATE_FIND_GOAL_func()
 	{
-		if(m_ColorMessage == COLOR_ZERO)
-		{
-			if((m_SwitchMessage & SWITCH_LEFT) != 0)
-			{
-				Car_Rotate_Right();
-			}
-			else
-			{
-				Car_Rotate_Left();
-			}
-		}
-		else
-		{
-			Car_Stop();
-			Switch_State(STATE_GO_GOAL);
-		}
-	}
-	public void STATE_GO_GOAL_func()
-	{
-        Log.d("dung.levan","STATE_GO_GOAL_func orientations " + orientations[0] + " - " + orientations[1] + " - " + orientations[2]);
+		Log.d("dung.levan","STATE_GO_GOAL_func orientations " + orientations[0] + " - " + orientations[1] + " - " + orientations[2]);
         Log.d("dung.levan","STATE_GO_GOAL_func orientations " + m_VectorDetect.getX() + " - " + m_VectorDetect.getY() + " - " + m_VectorDetect.getZ());
         if (m_VectorDetect.getX() < orientations[0] - 5 ){
             Log.d("dung.levan","right");
             Car_Rotate_Right();
-            //Car_TurnRight();
         } else if (m_VectorDetect.getX() > orientations[0] + 5) {
             Log.d("dung.levan","left");
-           // Car_TurnLeft();
             Car_Rotate_Left();
         } else
         {
             Log.d("dung.levan","forward");
-           // Car_Forward();
 			Car_Stop();
+			Switch_State(STATE_GO_GOAL);
         }
-        if (true) return; //only for test purpose, remove when finish
-		switch(m_ColorMessage) {
-			case COLOR_ZERO:// dang follow ball ma bi mat focus
-				Car_Stop();
-				Switch_State(STATE_FIND_GOAL);
-				break;
-			case COLOR_NEAR:
-				Car_Stop();
-				Switch_State(STATE_RELEASE_BALL);
-				break;
-			case COLOR_LEFT:
-				Car_TurnLeft();
-				break;
-			case COLOR_RIGHT:
+	}
+	public void STATE_GO_GOAL_func()
+	{
+		if(m_ColorMessage == COLOR_NEAR)
+		{
+			Car_Stop();
+			Switch_State(STATE_RELEASE_BALL);
+		}
+		else
+		{
+			if (m_VectorDetect.getX() < orientations[0] - 2 )
+			{
 				Car_TurnRight();
-				break;
-			case COLOR_MIDDLE:
+			} 
+			else if (m_VectorDetect.getX() > orientations[0] + 2) 
+			{
+				Car_TurnLeft();
+			} 
+			else
+			{
 				Car_Forward();
-				break;
+			}
 		}
 	}
 	public void STATE_RELEASE_BALL_func()
 	{
-		if (true) return;
 		Motor_Blow_Out();
 		Game_Sleep(TIME_FOR_BLOW_OUT);
 		Motor_Stop();
