@@ -200,16 +200,17 @@ public class Gameplay
         Log.d("dung.levan","STATE_GO_GOAL_func orientations " + m_VectorDetect.getX() + " - " + m_VectorDetect.getY() + " - " + m_VectorDetect.getZ());
         if (m_VectorDetect.getX() < orientations[0] - 5 ){
             Log.d("dung.levan","right");
-            //Car_Rotate_Right();
-            Car_TurnRight();
+            Car_Rotate_Right();
+            //Car_TurnRight();
         } else if (m_VectorDetect.getX() > orientations[0] + 5) {
             Log.d("dung.levan","left");
-            Car_TurnLeft();
-            //Car_Rotate_Left();
+           // Car_TurnLeft();
+            Car_Rotate_Left();
         } else
         {
             Log.d("dung.levan","forward");
-            Car_Forward();
+           // Car_Forward();
+			Car_Stop();
         }
         if (true) return; //only for test purpose, remove when finish
 		switch(m_ColorMessage) {
@@ -234,6 +235,7 @@ public class Gameplay
 	}
 	public void STATE_RELEASE_BALL_func()
 	{
+		if (true) return;
 		Motor_Blow_Out();
 		Game_Sleep(TIME_FOR_BLOW_OUT);
 		Motor_Stop();
