@@ -29,10 +29,11 @@ public class Gameplay
     public static final int SWITCH_LEFT = 0X10;
     public static final int SWITCH_RIGHT = 0X01;
     public static final int NUM_BALL = 1;
+	public static final int ANGLE_DIFF = 4;
 	private XDetector m_Detector;
     private XBluetooth m_Bluetooth;
 	private XVectorDetection m_VectorDetect = null;
-    private Vector3d m_VectorInit = null;
+	private int[] orientations;
 	public static final double DEGREE_ESP = 5.0;
 	private int m_SwitchMessage = 0;
 	private int m_ColorMessage = 0;
@@ -68,8 +69,9 @@ public class Gameplay
         m_Bluetooth = BT;
         m_Detector = DT;
 		m_VectorDetect = new XVectorDetection(context);
-		m_VectorInit = null;
+		//m_VectorInit = null;
 		m_State = STATE_INIT;
+		orientations = new int[3];
     }
 	// public static Gameplay getInstance()
 	// {
@@ -101,10 +103,12 @@ public class Gameplay
 		m_Detector.init();
         //Set GOAL vector
         Log.d("dung.levan","STATE_INIT_func");
-		m_VectorInit = new Vector3d((double)m_VectorDetect.getX(), (double)m_VectorDetect.getY(), (double)m_VectorDetect.getZ());
-        Log.d("dung.levan","orientations " + m_VectorDetect.getX() + " - " + m_VectorDetect.getY() + " - " + m_VectorDetect.getZ());
+		orientations[0] = (int) m_VectorDetect.getX();
+		orientations[1] = (int)m_VectorDetect.getY();
+		orientations[2] = (int)m_VectorDetect.getZ();
+        Log.d("dung.levan","orientations " + orientations[0] + " - " + orientations[1] + " - " + orientations[2]);
 		// Switch_State(STATE_FIND_BALL);
-		Switch_State(STATE_FIND_GOAL);
+		Switch_State(STATE_FIND_GOAL); // Đang test về khung lưới
 		ANDROID_INITIALIZED = true;
 	}
 	public void Game_Sleep(long time)
@@ -176,39 +180,29 @@ public class Gameplay
 	}
 	public void STATE_FIND_GOAL_func()
 	{
-		double degree = Math.toDegrees(new Vector3d((double)m_VectorDetect.getX(), (double)m_VectorDetect.getY(), (double)m_VectorDetect.getZ()).angle(m_VectorInit));
-		Log.d("dung.levan","degree" + degree);
-		if(degree > 0.0 + DEGREE_ESP && degree <= 180.0)
-		{
-			Log.d("dung.levan","right");
-			Car_Rotate_Right();
-		}
-		else if((degree > 180.0 && degree < 360.0 - DEGREE_ESP) || (degree < - DEGREE_ESP && degree > -180.0))
-		{
-			Log.d("dung.levan","left");
-			Car_Rotate_Left();
-		}
-		else
-		{
-			Log.d("dung.levan","stop");
-			Car_Stop();
-		}
-		if(true)
-			return;
-		// Log.d("dung.levan","STATE_GO_GOAL_func orientations " + orientations[0] + " - " + orientations[1] + " - " + orientations[2]);
-        // Log.d("dung.levan","STATE_GO_GOAL_func orientations " + m_VectorDetect.getX() + " - " + m_VectorDetect.getY() + " - " + m_VectorDetect.getZ());
-        // if (m_VectorDetect.getX() < orientations[0] - 5 ){
-            // Log.d("dung.levan","right");
-            // Car_Rotate_Right();
-        // } else if (m_VectorDetect.getX() > orientations[0] + 5) {
-            // Log.d("dung.levan","left");
-            // Car_Rotate_Left();
-        // } else
-        // {
-            // Log.d("dung.levan","forward");
-			// Car_Stop();
+		 Log.d("dung.levan","STATE_GO_GOAL_func orientations " + orientations[0] + " - " + orientations[1] + " - " + orientations[2]);
+         Log.d("dung.levan","STATE_GO_GOAL_func orientations " + m_VectorDetect.getX() + " - " + m_VectorDetect.getY() + " - " + m_VectorDetect.getZ());
+         if (m_VectorDetect.getX() < orientations[0] - ANGLE_DIFF ){ //ANGLE_DIFF: góc lệch, hằng số
+             Log.d("dung.levan","right");
+             Car_Rotate_Right(); // Xoay xe qua phải
+         } else if (m_VectorDetect.getX() > orientations[0] + ANGLE_DIFF) {
+             Log.d("dung.levan","left");
+             Car_Rotate_Left(); // Xoay xe qua trái
+         } /*else if (m_VectorDetect.getX() < ANGLE_DIFF ){
+			 Log.d("dung.levan","Turn right");
+			 Car_TurnRight(); // Vừa chạy vừa điều chỉnh góc nhỏ
+		 } else if (m_VectorDetect.getX() > ANGLE_DIFF ){
+			 Log.d("dung.levan","Turn left");
+			 Car_TurnLeft();// Vừa chạy vừa điều chỉnh góc nhỏ
+		 }*/ else
+         {
+             Log.d("dung.levan","forward");
+			 //Car_Stop();
+			 Car_Forward(); // NOTE: Xe chạy thẳng về khung, khi đụng vật cản mới chuyển state.
+			 				// Xin đừng chuyển state quá sớm, xe mất khả năng tự chỉnh góc.
 			// Switch_State(STATE_GO_GOAL);
-        // }
+         }
+		if (2==1) Switch_State(STATE_GO_GOAL); // Đụng khung lưới mới được chuyển state
 	}
 	public void STATE_GO_GOAL_func()
 	{/*
@@ -336,5 +330,20 @@ public class Gameplay
 	public static void setAndroidInitialized(boolean val)
 	{
 		ANDROID_INITIALIZED = val;
+	}
+
+    public float getX() {
+        return m_VectorDetect.getX();
+    }
+
+	public float getY() {
+		return  m_VectorDetect.getY();
+	}
+
+	public float getZ() {
+		return  m_VectorDetect.getZ();
+	}
+	public  int[] getOrientations(){
+		return orientations;
 	}
 }
