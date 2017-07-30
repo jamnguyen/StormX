@@ -57,6 +57,11 @@ public class XVectorDetection{
         sensorManager.registerListener(rvListener, rotationVectorSensor, SensorManager.SENSOR_DELAY_FASTEST);
     }
 
+	public void unRegisterListener()
+	{
+		if (sensorManager != null)
+			sensorManager.unregisterListener(rvListener);
+	}
     public float getY() {
         return y;
     }

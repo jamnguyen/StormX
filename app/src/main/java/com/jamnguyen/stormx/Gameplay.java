@@ -346,4 +346,11 @@ public class Gameplay
 	public  int[] getOrientations(){
 		return orientations;
 	}
+
+	public void onDestroy(){
+		if (m_Bluetooth != null)
+			m_Bluetooth.Disconnect();
+		if (m_VectorDetect != null)
+			m_VectorDetect.unRegisterListener();
+	}
 }
