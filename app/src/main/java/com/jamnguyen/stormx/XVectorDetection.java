@@ -53,10 +53,14 @@ public class XVectorDetection{
             public void onAccuracyChanged(Sensor sensor, int i) {
             }
         };
-// Register it
-        sensorManager.registerListener(rvListener, rotationVectorSensor, SensorManager.SENSOR_DELAY_FASTEST);
+        registerListener();
     }
 
+    public void registerListener(){
+        if (sensorManager != null)
+            // Register it
+            sensorManager.registerListener(rvListener, rotationVectorSensor, SensorManager.SENSOR_DELAY_NORMAL);
+    }
 	public void unRegisterListener()
 	{
 		if (sensorManager != null)

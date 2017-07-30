@@ -102,6 +102,8 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
         super.onPause();
         if (m_OpenCvCameraView != null)
             m_OpenCvCameraView.disableView();
+        if (m_Game != null)
+            m_Game.onPause();
     }
 
     @Override
@@ -116,6 +118,8 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
         {
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
         }
+        if (m_Game != null)
+            m_Game.onResume();
     }
 
     public void onDestroy()
@@ -123,7 +127,8 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
         super.onDestroy();
         if (m_OpenCvCameraView != null)
             m_OpenCvCameraView.disableView();
-        m_Game.onDestroy();
+        if (m_Game != null)
+            m_Game.onDestroy();
     }
 
     public boolean onTouch(View v, MotionEvent event)

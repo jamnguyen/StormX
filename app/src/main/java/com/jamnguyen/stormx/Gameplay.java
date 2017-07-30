@@ -353,4 +353,12 @@ public class Gameplay
 		if (m_VectorDetect != null)
 			m_VectorDetect.unRegisterListener();
 	}
+	public void onPause(){
+		if (m_VectorDetect != null)
+			m_VectorDetect.unRegisterListener();
+	}
+	public void onResume(){
+		if (m_VectorDetect != null)
+			m_VectorDetect.registerListener();
+	}
 }
