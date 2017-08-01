@@ -175,6 +175,7 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
                     m_XDetector.drawForwardRange(m_Rgba);
 
                     m_XDetector.colorDetect(m_Rgba);
+					m_Game.SetSwitchMessage(Integer.parseInt(m_MsgFromArduino));
                     if (!m_XDetector.isBallOnScreen()) {
                         m_Game.SetColorMessage(Gameplay.COLOR_ZERO);
                     } 
