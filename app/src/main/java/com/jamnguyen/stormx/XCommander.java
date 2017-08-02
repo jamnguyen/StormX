@@ -49,7 +49,7 @@ public class XCommander
         int tY = m_Detector.getTransposedY((int)centerPoint.x);
 		
 		//Ball's catchable
-        if(m_Detector.getBallArea()/m_Detector.getScreenArea() >= XDetector.CAUGHT_AREA_RATIO)
+        if(m_Detector.getBallArea()/m_Detector.getScreenArea() >= XDetector.BALL_AREA_RATIO)
         {
             //First: Stop
             if(!m_Bluetooth.getPrevSentMsg().equals(CATCH_BALL))

@@ -181,8 +181,8 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
                     } 
 					else 
 					{
-						int area_ratio = XDetector.BALL_AREA_RATIO;
-						if(!getDetectBall())
+						double area_ratio = XDetector.BALL_AREA_RATIO;
+						if(!m_XDetector.getDetectBall())
 							area_ratio = XDetector.GOAL_AREA_RATIO;
                         if (m_XDetector.getBallArea() / m_XDetector.getScreenArea() >= area_ratio) 
 						{
