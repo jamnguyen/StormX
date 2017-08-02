@@ -78,7 +78,7 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_work);
 
-        m_MsgFromArduino = "<Nothing received>";
+        m_MsgFromArduino = "0";
 		
         //Camera
         m_OpenCvCameraView = (XCameraView) findViewById(R.id.activity_java_surface_view);
@@ -181,7 +181,10 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
                     } 
 					else 
 					{
-                        if (m_XDetector.getBallArea() / m_XDetector.getScreenArea() >= XDetector.CAUGHT_AREA_RATIO) 
+						int area_ratio = XDetector.BALL_AREA_RATIO;
+						if(!getDetectBall())
+							area_ratio = XDetector.GOAL_AREA_RATIO;
+                        if (m_XDetector.getBallArea() / m_XDetector.getScreenArea() >= area_ratio) 
 						{
 							m_Game.SetColorMessage(Gameplay.COLOR_NEAR);
 						} 

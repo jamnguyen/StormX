@@ -24,7 +24,8 @@ public class XDetector
 {
     public static boolean           USE_TRANSPOSE_MODE = true;
 
-    public static double            CAUGHT_AREA_RATIO    = 0.20;
+    public static double            BALL_AREA_RATIO    = 0.20;
+    public static double            GOAL_AREA_RATIO    = 0.20;
     public static int               MIDDLE_LINE;
     public static final double      MIDDLE_DELTA         = 120;
     public int                      SCREEN_WIDTH;

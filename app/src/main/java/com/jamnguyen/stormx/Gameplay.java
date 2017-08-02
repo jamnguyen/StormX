@@ -205,7 +205,7 @@ public class Gameplay
 	}
 	public void STATE_GO_GOAL_func()
 	{
-		if(((m_SwitchMessage & (SWITCH_LEFT && SWITCH_RIGHT)) != 0))//Xe đụng cả 2 công tắc
+		if(((m_SwitchMessage & (SWITCH_LEFT | SWITCH_RIGHT)) != 0))//Xe đụng cả 2 công tắc
 		{
 			Car_Stop();
 			Switch_State(STATE_RELEASE_BALL);
