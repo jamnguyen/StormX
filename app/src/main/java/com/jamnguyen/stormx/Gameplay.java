@@ -61,15 +61,18 @@ public class Gameplay
 
 	public static boolean ANDROID_STARTED = false;
 	public static boolean ANDROID_INITIALIZED = false;
+	public static boolean isTEAM_STORMX = false;
+
 
 	public Gameplay(){
 		m_Bluetooth = null;
 	}
-	public Gameplay(XBluetooth BT, XDetector DT, Context context)
+	public Gameplay(XBluetooth BT, XDetector DT, Context context, boolean isStormX)
     {
         m_Bluetooth = BT;
         m_Detector = DT;
-		m_VectorDetect = new XVectorDetection(context);
+		isTEAM_STORMX = isStormX;
+		m_VectorDetect = new XVectorDetection(context, isTEAM_STORMX);
 		//m_VectorInit = null;
 		m_State = STATE_INIT;
 		orientations = new int[3];

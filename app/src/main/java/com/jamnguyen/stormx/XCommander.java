@@ -40,7 +40,7 @@ public class XCommander
 			m_Bluetooth.send(command);
 		}
     }
-
+/*
 	public void handleBall(Point centerPoint)
 	{
 		//This function run when there's ball on screen
@@ -80,7 +80,8 @@ public class XCommander
             }
         }
 	}
-	
+	*/
+/*
 	public void seekForBall()
 	{
 		sendCommnand(TURN_LEFT);
@@ -95,4 +96,5 @@ public class XCommander
     {
         m_isBallHolding = hold;
     }
+    */
 }

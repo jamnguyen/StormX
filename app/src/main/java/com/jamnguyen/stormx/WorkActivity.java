@@ -36,6 +36,7 @@ import static org.opencv.imgproc.Imgproc.contourArea;
 public class WorkActivity extends Activity implements View.OnTouchListener, CvCameraViewListener2
 {
     private static final String  TAG              = "OCVSample::Activity";
+    public static boolean isTEAM_STORMX = true;// set team nào StormX hay Spirit
 
     private XCameraView     m_OpenCvCameraView;
     private boolean         m_isBallOnScreen = false;
@@ -141,9 +142,9 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
     public void onCameraViewStarted(int width, int height)
     {
         m_Rgba = new Mat(height, width, CvType.CV_8UC4);
-        m_XDetector = new XDetector(context, width, height);
+        m_XDetector = new XDetector(context, width, height, isTEAM_STORMX);
 
-        m_Game = new Gameplay(m_XBluetooth, m_XDetector, context);
+        m_Game = new Gameplay(m_XBluetooth, m_XDetector, context, isTEAM_STORMX);
         // m_XCommander = new XCommander(m_XBluetooth, m_XDetector);
     }
     public void onCameraViewStopped()
@@ -175,7 +176,7 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
                     m_XDetector.drawForwardRange(m_Rgba);
 
                     m_XDetector.colorDetect(m_Rgba);
-					m_Game.SetSwitchMessage(Integer.parseInt(m_MsgFromArduino));
+				//	m_Game.SetSwitchMessage(Integer.parseInt(m_MsgFromArduino));
                     if (!m_XDetector.isBallOnScreen()) {
                         m_Game.SetColorMessage(Gameplay.COLOR_ZERO);
                     } 
@@ -191,9 +192,17 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
 						else 
 						{
 							int tX = m_XDetector.getTransposedX((int) m_XDetector.getBallCenter().y);
+                            if (m_Game.isTEAM_STORMX) tX = (int) m_XDetector.getBallCenter().x;
 							int tY = m_XDetector.getTransposedY((int) m_XDetector.getBallCenter().x);
+                            if (m_Game.isTEAM_STORMX) tY = (int) m_XDetector.getBallCenter().y;
+                            int temp = 0;
+                            if (m_Game.isTEAM_STORMX)
+                            {
+                                int radius = (int)Math.sqrt(m_XDetector.getBallArea()/Math.PI);//lây bán kình hình tròn
+                                temp = radius;// Chỉnh tâm về bên phải
+                            }
 							//Calibrating direction
-							if (tX < m_XDetector.getMiddleLine() && (m_XDetector.getMiddleLine() - tX) > XDetector.MIDDLE_DELTA) {
+							if (tX < (m_XDetector.getMiddleLine() + temp) && ((m_XDetector.getMiddleLine() + temp) - tX) > XDetector.MIDDLE_DELTA) {
 								m_Game.SetColorMessage(Gameplay.COLOR_LEFT);
 							} else if (tX > m_XDetector.getMiddleLine() && (tX - m_XDetector.getMiddleLine()) > XDetector.MIDDLE_DELTA) {
 								m_Game.SetColorMessage(Gameplay.COLOR_RIGHT);
@@ -243,8 +252,8 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
             Utils.drawString(m_Rgba, "Arduino: " + m_MsgFromArduino, 20, 40);
             Utils.drawString(m_Rgba, "Command: " + m_XBluetooth.getPrevSentMsg(), 20, 70);
             Utils.drawString(m_Rgba, "Is detecting ball: " + m_XDetector.getDetectBall(), 20, 100);
-            Utils.drawString(m_Rgba, "x_org: " + m_Game.getOrientations()[0] + " -- y_org: " +
-                    m_Game.getOrientations()[1] + " -- z_org: " + m_Game.getOrientations()[2], 20, 130);//dung.levan thêm để lấy thông tin
+           // Utils.drawString(m_Rgba, "x_org: " + m_Game.getOrientations()[0] + " -- y_org: " +
+            //        m_Game.getOrientations()[1] + " -- z_org: " + m_Game.getOrientations()[2], 20, 130);//dung.levan thêm để lấy thông tin
             Utils.drawString(m_Rgba, "x: " + (int)m_Game.getX() + " -- y: " + (int)m_Game.getY() + " -- z: " + (int)m_Game.getZ(), 20, 160); //dung.levan thêm để lấy thông tin
             //--------------------------------------------------------------------------------------
         }

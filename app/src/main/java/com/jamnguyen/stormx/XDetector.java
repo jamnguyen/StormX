@@ -22,7 +22,7 @@ import static org.opencv.imgproc.Imgproc.contourArea;
 
 public class XDetector
 {
-    public static boolean           USE_TRANSPOSE_MODE = true;
+    public static boolean           USE_TRANSPOSE_MODE = false;
 
     public static double            BALL_AREA_RATIO    = 0.20;
     public static double            GOAL_AREA_RATIO    = 0.20;
@@ -68,12 +68,12 @@ public class XDetector
 		return m_isDetectBall;
 	}
 
-    public XDetector(Context context, int screenWidth, int screenHeight)
+    public XDetector(Context context, int screenWidth, int screenHeight, boolean isStormX)
     {
         m_appContext = context;
         SCREEN_WIDTH = screenWidth;
         SCREEN_HEIGHT = screenHeight;
-
+        USE_TRANSPOSE_MODE = isStormX;
         m_BlobDetectorPink = new ColorBlobDetector();
         m_BlobDetectorOrange = new ColorBlobDetector();
         m_BlobDetectorGreen = new ColorBlobDetector();
