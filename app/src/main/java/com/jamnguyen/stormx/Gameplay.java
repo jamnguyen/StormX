@@ -122,6 +122,7 @@ public class Gameplay
 		orientations[2] = (int)m_VectorDetect.getZ();
         Log.d("dung.levan","orientations " + orientations[0] + " - " + orientations[1] + " - " + orientations[2]);
 		Switch_State(STATE_FIND_BALL);
+		//Switch_State(STATE_FOLLOW_BALL);
 //		Switch_State(STATE_FIND_GOAL); // Đang test về khung lưới
 		ANDROID_INITIALIZED = true;
 	}
@@ -413,4 +414,7 @@ public class Gameplay
 		if (m_VectorDetect != null)
 			m_VectorDetect.registerListener();
 	}
+	public int getState(){
+        return m_State;
+    }
 }

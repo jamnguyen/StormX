@@ -185,8 +185,10 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
 						double area_ratio = XDetector.BALL_AREA_RATIO;
 						if(!m_XDetector.getDetectBall())
 							area_ratio = XDetector.GOAL_AREA_RATIO;
-                        if (m_XDetector.getBallArea() / m_XDetector.getScreenArea() >= area_ratio) 
+                        if(!isTEAM_STORMX) area_ratio = m_XDetector.SPIRIT_BALL_AREA_RATIO;
+                        if (m_XDetector.getBallArea() / m_XDetector.getScreenArea() >= area_ratio)
 						{
+                            Log.d("dung.levan", "m_XDetector.getBallArea() = " + m_XDetector.getBallArea() + " -- " + m_XDetector.getScreenArea() + " -- area_ratio = " + area_ratio);
 							m_Game.SetColorMessage(Gameplay.COLOR_NEAR);
 						} 
 						else 
@@ -256,6 +258,7 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
             Utils.drawString(m_Rgba, "Arduino: " + m_MsgFromArduino, 20, 40);
             Utils.drawString(m_Rgba, "Command: " + m_XBluetooth.getPrevSentMsg(), 20, 70);
             Utils.drawString(m_Rgba, "Is detecting ball: " + m_XDetector.getDetectBall(), 20, 100);
+            Utils.drawString(m_Rgba, "State: " + m_Game.getState() + " -- TEAM: StormX ? " + isTEAM_STORMX, 20, 130);
            // Utils.drawString(m_Rgba, "x_org: " + m_Game.getOrientations()[0] + " -- y_org: " +
             //        m_Game.getOrientations()[1] + " -- z_org: " + m_Game.getOrientations()[2], 20, 130);//dung.levan thêm để lấy thông tin
             Utils.drawString(m_Rgba, "x: " + (int)m_Game.getX() + " -- y: " + (int)m_Game.getY() + " -- z: " + (int)m_Game.getZ(), 20, 160); //dung.levan thêm để lấy thông tin
