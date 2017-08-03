@@ -161,7 +161,8 @@ public class XBluetooth
                             byte b = packetBytes[i];
                             if(b == delimiter)
                             {
-                                readBufferPosition--;
+                                if(readBufferPosition > 0)
+                                    readBufferPosition--;
                                 byte[] encodedBytes = new byte[readBufferPosition];
                                 System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
 //                                final String data = new String(encodedBytes, "US-ASCII");
@@ -243,7 +244,10 @@ public class XBluetooth
 
         if (m_ConnectedThread != null)
         {
-            m_ConnectedThread.write(s);
+            if(!m_prevSentMsg.equals(s))
+            {
+                m_ConnectedThread.write(s);
+            }
         }
 
         m_prevSentMsg = s;

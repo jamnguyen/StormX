@@ -54,10 +54,10 @@ public class Gameplay
 	public static final int STATE_RELEASE_BALL = 6;
 	
 	public long m_CurrentTime = 0;
-	public static final int TIME_FOR_BLOW_OUT = 100;
-	public static final int TIME_FOR_BLOW_IN = 500;
+	public static final int TIME_FOR_BLOW_OUT = 4000;
+	public static final int TIME_FOR_BLOW_IN = 5000;
 	public static final int TIME_FOR_SERVO1_UP = 200;
-	public static final int TIME_FOR_CAR_BACKWARD = 200;
+	public static final int TIME_FOR_CAR_BACKWARD = 2000;
     //Spirit
     public static final int SPIRIT_TIME_FRONT = 1000;
     public static final int SPIRIT_TIME_THROW = 1000;
@@ -65,7 +65,7 @@ public class Gameplay
 
 	public static boolean ANDROID_STARTED = false;
 	public static boolean ANDROID_INITIALIZED = false;
-	public static boolean isTEAM_STORMX = false;
+	public static boolean isTEAM_STORMX = true;
 	public static int m_BallCount = 0;//đếm số banh hiện tại
 
 

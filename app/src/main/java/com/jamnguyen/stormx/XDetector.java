@@ -24,7 +24,7 @@ public class XDetector
 {
     public static boolean           USE_TRANSPOSE_MODE = false;
 
-    public static double            BALL_AREA_RATIO    = 0.20;
+    public static double            BALL_AREA_RATIO    = 0.15;
     public static double            GOAL_AREA_RATIO    = 0.20;
     public static int               MIDDLE_LINE;
     public static final double      MIDDLE_DELTA         = 120;
@@ -115,7 +115,10 @@ public class XDetector
         //Orange: 13.640625, 193.3125, 231.578125
         //Green: 101.0625, 162.921875, 110.390625
         //Green2: 83.828125, 198.8125, 118.359375
-        m_BlobColorHsv = new Scalar(233.0625, 183.109375, 225.0, 0.0);
+        //Room 1:
+        //Pink: 240.25, 201.96875, 192.65625
+        //Orange: 13.640625, 193.3125, 231.578125
+        m_BlobColorHsv = new Scalar(240.25, 201.96875, 192.65625, 0.0);
         m_BlobDetectorPink.setHsvColor(m_BlobColorHsv);
         m_BlobColorHsv = new Scalar(13.640625, 193.3125, 231.578125, 0.0);
         m_BlobDetectorOrange.setHsvColor(m_BlobColorHsv);
@@ -276,34 +279,29 @@ public class XDetector
         Mat touchedRegionHsv = new Mat();
         Imgproc.cvtColor(touchedRegionRgba, touchedRegionHsv, Imgproc.COLOR_RGB2HSV_FULL);
 
-        // Calculate average color of touched region
+        //Get Color---------------------------------------------------------------------------------
 //        m_BlobColorHsv = Core.sumElems(touchedRegionHsv);
 //        int pointCount = touchedRect.width*touchedRect.height;
 //        for (int i = 0; i < m_BlobColorHsv.val.length; i++)
 //            m_BlobColorHsv.val[i] /= pointCount;
-//
-////        m_BlobColorRgba = converScalarHsv2Rgba(m_BlobColorHsv);
-//
+////
+//////        m_BlobColorRgba = converScalarHsv2Rgba(m_BlobColorHsv);
+////
 //        Utils.toastLong("Touched HSV color: (" + m_BlobColorHsv.val[0] + ", " + m_BlobColorHsv.val[1] +
 //                ", " + m_BlobColorHsv.val[2] + ", " + m_BlobColorHsv.val[3] + ")", m_appContext);
+//        m_BlobDetectorPink.setHsvColor(m_BlobColorHsv);
+//
+//        if(!Gameplay.ANDROID_STARTED)
+//        {
+//            Gameplay.setAndroidStarted(true);
+//            Gameplay.setAndroidInitialized(false);
+//        }
+//        else
+//        {
+//            Gameplay.setAndroidStarted(false);
+//        }
 
-        //Pink: 233.0625, 183.109375, 225.0
-        //Orange: 13.640625, 193.3125, 231.578125
-        //Green: 101.0625, 162.921875, 110.390625
-        //Green2: 83.828125, 198.8125, 118.359375
-//		if(m_isDetectBall)
-//		{
-//			m_BlobColorHsv = new Scalar(233.0625, 183.109375, 225.0, 0.0);
-//			m_BlobDetectorPink.setHsvColor(m_BlobColorHsv);
-//			m_BlobColorHsv = new Scalar(13.640625, 193.3125, 231.578125, 0.0);
-//			m_BlobDetectorOrange.setHsvColor(m_BlobColorHsv);
-//			Imgproc.resize(m_BlobDetectorPink.getSpectrum(), m_Spectrum, SPECTRUM_SIZE);
-//		}
-//		else
-//		{
-//			m_BlobColorHsv = new Scalar(101.0625, 162.921875, 110.390625, 0.0);
-//			m_BlobDetectorGreen.setHsvColor(m_BlobColorHsv);
-//		}
+        //------------------------------------------------------------------------------------------
 
 
         if(!Gameplay.ANDROID_STARTED)
