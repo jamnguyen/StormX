@@ -24,7 +24,7 @@ public class XDetector
 {
     public static boolean           USE_TRANSPOSE_MODE = true;
 
-    public static double            BALL_AREA_RATIO    = 0.15;
+    public static double            BALL_AREA_RATIO    = 0.11;
     public static double            SPIRIT_BALL_AREA_RATIO    = 0.78;
     public static double            GOAL_AREA_RATIO    = 0.20;
     public static int               MIDDLE_LINE;
@@ -111,7 +111,7 @@ public class XDetector
             m_midDownRightPoint = new Point(MIDDLE_LINE + MIDDLE_DELTA, SCREEN_HEIGHT);
         }
 
-        //Set color
+        //StormX color
         //Pink: 233.0625, 183.109375, 225.0
         //Orange: 13.640625, 193.3125, 231.578125
         //Green: 101.0625, 162.921875, 110.390625
@@ -119,6 +119,13 @@ public class XDetector
         //Room 1:
         //Pink: 240.25, 201.96875, 192.65625
         //Orange: 13.640625, 193.3125, 231.578125
+
+        //Spirit color
+        //Pink: 245.8125, 177.328125, 218.0
+        //Orange: 14.0, 209.71875, 212.96875
+        //Green: 91.140625, 207.734375, 74.8125
+
+//        m_BlobColorHsv = new Scalar(233.0625, 183.109375, 225.0, 0.0);
         m_BlobColorHsv = new Scalar(240.25, 201.96875, 192.65625, 0.0);
         m_BlobDetectorPink.setHsvColor(m_BlobColorHsv);
         m_BlobColorHsv = new Scalar(13.640625, 193.3125, 231.578125, 0.0);
