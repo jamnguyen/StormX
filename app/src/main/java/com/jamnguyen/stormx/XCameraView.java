@@ -4,11 +4,12 @@ import java.io.FileOutputStream;
 import java.util.List;
 
 import org.opencv.android.JavaCameraView;
+import org.opencv.core.Size;
 
 import android.content.Context;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
-import android.hardware.Camera.Size;
+//import android.hardware.Camera.Size;
 import android.util.AttributeSet;
 import android.util.Log;
 
@@ -48,6 +49,14 @@ public class XCameraView extends JavaCameraView
 //        mMaxWidth = resolution.width;
 //        connectCamera(getWidth(), getHeight());
 //    }
+
+    public void setResolution(Size resolution) {
+        disconnectCamera();
+        mMaxHeight = (int) resolution.height;
+        mMaxWidth = (int) resolution.width;
+        connectCamera(getWidth(), getHeight());
+
+    }
 //
 //    public Size getResolution() {
 //        return mCamera.getParameters().getPreviewSize();

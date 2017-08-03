@@ -84,8 +84,10 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
         //Camera
         m_OpenCvCameraView = (XCameraView) findViewById(R.id.activity_java_surface_view);
         m_OpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
+        Size resolution = new Size(768,432);
+        m_OpenCvCameraView.setResolution(resolution);
         m_OpenCvCameraView.setCvCameraViewListener(this);
-
+        
         //Bluetooth
         Intent newint = getIntent();
         String address = newint.getStringExtra(SetupActivity.EXTRA_ADDRESS);
