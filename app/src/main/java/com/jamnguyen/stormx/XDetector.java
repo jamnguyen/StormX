@@ -68,12 +68,12 @@ public class XDetector
 		return m_isDetectBall;
 	}
 
-    public XDetector(Context context, int screenWidth, int screenHeight, boolean isStormX)
+    public XDetector(Context context, int screenWidth, int screenHeight/*, boolean isStormX*/)
     {
         m_appContext = context;
         SCREEN_WIDTH = screenWidth;
         SCREEN_HEIGHT = screenHeight;
-        USE_TRANSPOSE_MODE = isStormX;
+       //USE_TRANSPOSE_MODE = isStormX;
         m_BlobDetectorPink = new ColorBlobDetector();
         m_BlobDetectorOrange = new ColorBlobDetector();
         m_BlobDetectorGreen = new ColorBlobDetector();

@@ -30,8 +30,8 @@ public class XVectorDetection{
                 // Remap coordinate system
                 float[] remappedRotationMatrix = new float[16];
                 SensorManager.getRotationMatrixFromVector(rotationMatrix, sensorEvent.values);
-              //  int rotation = ((WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation();
-                if(isStormX) // Default display rotation is portrait
+                int rotation = ((WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation();
+                if(rotation == 0) // Default display rotation is portrait
                     SensorManager.remapCoordinateSystem(rotationMatrix, SensorManager.AXIS_X, SensorManager.AXIS_Z, remappedRotationMatrix);
                 else   // Default display rotation is landscape
                     SensorManager.remapCoordinateSystem(rotationMatrix, SensorManager.AXIS_Z, SensorManager.AXIS_X, remappedRotationMatrix);

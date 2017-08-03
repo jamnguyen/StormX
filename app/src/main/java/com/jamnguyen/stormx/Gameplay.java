@@ -58,10 +58,15 @@ public class Gameplay
 	public static final int TIME_FOR_BLOW_IN = 500;
 	public static final int TIME_FOR_SERVO1_UP = 200;
 	public static final int TIME_FOR_CAR_BACKWARD = 200;
+    //Spirit
+    public static final int SPIRIT_TIME_FRONT = 1000;
+    public static final int SPIRIT_TIME_THROW = 1000;
+    public static final int NUM_OF_BALL = 1;//Số banh cần bắt
 
 	public static boolean ANDROID_STARTED = false;
 	public static boolean ANDROID_INITIALIZED = false;
 	public static boolean isTEAM_STORMX = false;
+	public static int m_BallCount = 0;//đếm số banh hiện tại
 
 
 	public Gameplay(){
@@ -76,6 +81,7 @@ public class Gameplay
 		//m_VectorInit = null;
 		m_State = STATE_INIT;
 		orientations = new int[3];
+        m_BallCount = 0;
     }
 	// public static Gameplay getInstance()
 	// {
@@ -176,17 +182,30 @@ public class Gameplay
 	}
 	public void STATE_CATCH_BALL_func()
 	{
-		Motor_Blow_In();
-		Servo1_Down();
-		Game_Sleep(TIME_FOR_BLOW_IN);
-		Servo1_Up();
-		Game_Sleep(TIME_FOR_SERVO1_UP);
-		Motor_Stop();
-		Car_Stop();
-		Switch_State(STATE_FIND_GOAL);
+		if (isTEAM_STORMX) {
+			Motor_Blow_In();
+			Servo1_Down();
+			Game_Sleep(TIME_FOR_BLOW_IN);
+			Servo1_Up();
+			Game_Sleep(TIME_FOR_SERVO1_UP);
+			Motor_Stop();
+			Car_Stop();
+			Switch_State(STATE_FIND_GOAL);
+		} else
+		{
+            Car_Stop();
+			Servo1_Down();
+			Game_Sleep(SPIRIT_TIME_FRONT);
+			Servo1_Up();
+			Game_Sleep(SPIRIT_TIME_FRONT);
+            m_BallCount++;
+			//Car_Stop();
+			if (m_BallCount >= NUM_OF_BALL ) Switch_State(STATE_FIND_GOAL);
+		}
 	}
 	public void STATE_FIND_GOAL_func()
 	{
+        m_BallCount = 0;
 		 Log.d("dung.levan","STATE_GO_GOAL_func orientations " + orientations[0] + " - " + orientations[1] + " - " + orientations[2]);
          Log.d("dung.levan","STATE_GO_GOAL_func orientations " + m_VectorDetect.getX() + " - " + m_VectorDetect.getY() + " - " + m_VectorDetect.getZ());
         if (m_VectorDetect.getX() < orientations[0] - ANGLE_DIFF ){ //ANGLE_DIFF: góc lệch, hằng số
@@ -208,7 +227,7 @@ public class Gameplay
 	}
 	public void STATE_GO_GOAL_func()
 	{
-		if(((m_SwitchMessage & (SWITCH_LEFT | SWITCH_RIGHT)) != 0))//Xe đụng cả 2 công tắc
+		if(((m_SwitchMessage & (SWITCH_LEFT | SWITCH_RIGHT)) != 0))//Xe đụng 1 trong 2 công tắc
 		{
 			Car_Stop();
 			Switch_State(STATE_RELEASE_BALL);
@@ -248,15 +267,27 @@ public class Gameplay
 			}
 		}
 	}
-	public void STATE_RELEASE_BALL_func()
-	{
-		Motor_Blow_Out();
-		Game_Sleep(TIME_FOR_BLOW_OUT);
-		Motor_Stop();
-		Car_Backward();
-		Game_Sleep(TIME_FOR_CAR_BACKWARD);
-		Car_Stop();
-		Switch_State(STATE_FIND_BALL);
+	public void STATE_RELEASE_BALL_func() {
+        if (isTEAM_STORMX) {
+            Motor_Blow_Out();
+            Game_Sleep(TIME_FOR_BLOW_OUT);
+            Motor_Stop();
+            Car_Backward();
+            Game_Sleep(TIME_FOR_CAR_BACKWARD);
+            Car_Stop();
+            Switch_State(STATE_FIND_BALL);
+        } else {
+            //Chạy motor nghiêng khung
+
+            //Chạy luôn hạ càng
+
+            Game_Sleep(SPIRIT_TIME_FRONT);
+            Car_Backward();
+            Game_Sleep(TIME_FOR_CAR_BACKWARD);
+            Car_Stop();
+            Switch_State(STATE_FIND_BALL);
+        }
+
 	}
 	
 	public void Run()

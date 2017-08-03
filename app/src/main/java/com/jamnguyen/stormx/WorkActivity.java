@@ -36,7 +36,7 @@ import static org.opencv.imgproc.Imgproc.contourArea;
 public class WorkActivity extends Activity implements View.OnTouchListener, CvCameraViewListener2
 {
     private static final String  TAG              = "OCVSample::Activity";
-    public static boolean isTEAM_STORMX = true;// set team nào StormX hay Spirit
+    public static boolean isTEAM_STORMX = false;// set team nào StormX hay Spirit
 
     private XCameraView     m_OpenCvCameraView;
     private boolean         m_isBallOnScreen = false;
@@ -142,7 +142,7 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
     public void onCameraViewStarted(int width, int height)
     {
         m_Rgba = new Mat(height, width, CvType.CV_8UC4);
-        m_XDetector = new XDetector(context, width, height, isTEAM_STORMX);
+        m_XDetector = new XDetector(context, width, height/*, isTEAM_STORMX*/);
 
         m_Game = new Gameplay(m_XBluetooth, m_XDetector, context, isTEAM_STORMX);
         // m_XCommander = new XCommander(m_XBluetooth, m_XDetector);
@@ -192,15 +192,15 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
 						else 
 						{
 							int tX = m_XDetector.getTransposedX((int) m_XDetector.getBallCenter().y);
-                            if (m_Game.isTEAM_STORMX) tX = (int) m_XDetector.getBallCenter().x;
+                          //  if (m_Game.isTEAM_STORMX) tX = (int) m_XDetector.getBallCenter().x;
 							int tY = m_XDetector.getTransposedY((int) m_XDetector.getBallCenter().x);
-                            if (m_Game.isTEAM_STORMX) tY = (int) m_XDetector.getBallCenter().y;
+                          //  if (m_Game.isTEAM_STORMX) tY = (int) m_XDetector.getBallCenter().y;
                             int temp = 0;
-                            if (m_Game.isTEAM_STORMX)
+                          /*  if (m_Game.isTEAM_STORMX)
                             {
                                 int radius = (int)Math.sqrt(m_XDetector.getBallArea()/Math.PI);//lây bán kình hình tròn
                                 temp = radius;// Chỉnh tâm về bên phải
-                            }
+                            }*/
 							//Calibrating direction
 							if (tX < (m_XDetector.getMiddleLine() + temp) && ((m_XDetector.getMiddleLine() + temp) - tX) > XDetector.MIDDLE_DELTA) {
 								m_Game.SetColorMessage(Gameplay.COLOR_LEFT);
