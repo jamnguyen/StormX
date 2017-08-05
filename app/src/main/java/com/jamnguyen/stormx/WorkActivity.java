@@ -230,11 +230,12 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
         Utils.drawString(m_Rgba, "Arduino: " + m_MsgFromArduino, 20, 40);
         Utils.drawString(m_Rgba, "Command: " + m_XBluetooth.getPrevSentMsg(), 20, 70);
 //        Utils.drawString(m_Rgba, "Is detecting ball: " + m_XDetector.getDetectBall(), 20, 100);
-        Utils.drawString(m_Rgba, "Ball distance: " + m_XDetector.getBallDistance(), 20, 110);
-        Utils.drawString(m_Rgba, "State: " + m_Game.getState() + " -- TEAM: " + (XConfig.isTEAM_STORMX ? "StormX" : "Spirit"), 20, 130);
+        Utils.drawString(m_Rgba, "Ball distance: " + m_XDetector.getBallDistance(), 20, 100);
+//        Utils.drawString(m_Rgba, "State: " + m_Game.getState() + " -- TEAM: " + (XConfig.isTEAM_STORMX ? "StormX" : "Spirit"), 20, 130);
+        Utils.drawString(m_Rgba, "Color state: " + m_Game.getColorMessage(), 20, 130);
         // Utils.drawString(m_Rgba, "x_org: " + m_Game.getOrientations()[0] + " -- y_org: " +
         //        m_Game.getOrientations()[1] + " -- z_org: " + m_Game.getOrientations()[2], 20, 130);//dung.levan thêm để lấy thông tin
-        Utils.drawString(m_Rgba, "x: " + (int)m_Game.getX() + " -- y: " + (int)m_Game.getY() + " -- z: " + (int)m_Game.getZ(), 20, 160); //dung.levan thêm để lấy thông tin
+//        Utils.drawString(m_Rgba, "x: " + (int)m_Game.getX() + " -- y: " + (int)m_Game.getY() + " -- z: " + (int)m_Game.getZ(), 20, 160); //dung.levan thêm để lấy thông tin
         //--------------------------------------------------------------------------------------
 
         return m_Rgba;

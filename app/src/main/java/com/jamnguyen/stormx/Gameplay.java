@@ -53,16 +53,10 @@ public class Gameplay
 	public static final int STATE_FIND_GOAL = 4;
 	public static final int STATE_GO_GOAL = 5;
 	public static final int STATE_RELEASE_BALL = 6;
+	public static final int STATE_CLEAN_PATH = 7;
+	public static final int STATE_CENTER_BALL = 8;
 	
 	public long m_CurrentTime = 0;
-	public static final int TIME_FOR_BLOW_OUT = 1500;
-	public static final int TIME_FOR_BLOW_IN = 1500;
-	public static final int TIME_FOR_SERVO1_UP = 200;
-	public static final int TIME_FOR_CAR_BACKWARD = 1300;
-    //Spirit
-    public static final int SPIRIT_TIME_FRONT = 1000;
-    public static final int SPIRIT_TIME_THROW = 1000;
-    public static final int NUM_OF_BALL = 1;//Số banh cần bắt
 
 	public static boolean ANDROID_STARTED = false;
 	public static boolean ANDROID_INITIALIZED = false;
@@ -146,7 +140,12 @@ public class Gameplay
 	}
 	public void STATE_FIND_BALL_func()
 	{
-		if(m_ColorMessage == COLOR_ZERO)
+		if(m_ColorMessage == COLOR_MIDDLE || m_ColorMessage == COLOR_NEAR)
+		{
+			Car_Stop();
+			Switch_State(STATE_FOLLOW_BALL);
+		}
+		else
 		{
 			if((m_SwitchMessage & SWITCH_LEFT) != 0)
 			{
@@ -156,11 +155,6 @@ public class Gameplay
 			{
 				Car_Rotate_Left();
 			}
-		}
-		else
-		{
-			Car_Stop();
-			Switch_State(STATE_FOLLOW_BALL);
 		}
 	}
 	public void STATE_FOLLOW_BALL_func()
@@ -173,7 +167,7 @@ public class Gameplay
 			break;
 			case COLOR_NEAR:
 			Car_Stop();
-			Switch_State(STATE_CATCH_BALL);
+			Switch_State(STATE_CENTER_BALL);
 			break;
 			case COLOR_LEFT:
 			Car_TurnLeft();
@@ -186,29 +180,60 @@ public class Gameplay
 			break;
 		}
 	}
+	public void STATE_CENTER_BALL_func()
+	{
+		int tX = m_Detector.getTransposedX((int) m_Detector.getBallCenter().y);
+		if (tX < (m_Detector.getMiddleLine()) && ((m_Detector.getMiddleLine()) - tX) > XConfig.MIDDLE_DELTA) {
+			Car_Rotate_Left();
+		} else if (tX > m_Detector.getMiddleLine() && (tX - m_Detector.getMiddleLine()) > XConfig.MIDDLE_DELTA) {
+			Car_Rotate_Right();
+		} else {
+			Car_Stop();
+			Switch_State(STATE_CATCH_BALL);
+		}
+	}
 	public void STATE_CATCH_BALL_func()
 	{
 		if (XConfig.isTEAM_STORMX) {
 			Motor_Blow_In();
 			Servo1_Down();
-			Game_Sleep(TIME_FOR_BLOW_IN);
+			Game_Sleep(XConfig.TIME_FOR_BLOW_IN);
 			Servo1_Up();
-			Game_Sleep(TIME_FOR_SERVO1_UP);
+			Game_Sleep(XConfig.TIME_FOR_SERVO1_UP);
 			Motor_Stop();
 			Car_Stop();
-			Switch_State(STATE_FIND_GOAL);
+//			if(m_ColorMessage == COLOR_NEAR)
+//			{
+//				Switch_State(STATE_CLEAN_PATH);
+//			}
+//			else
+			{
+				Switch_State(STATE_FIND_GOAL);
+			}
 		} else
 		{
             Car_Stop();
 			Servo1_Down();
-			Game_Sleep(SPIRIT_TIME_FRONT);
+			Game_Sleep(XConfig.SPIRIT_TIME_FRONT);
 			Servo1_Up();
-			Game_Sleep(SPIRIT_TIME_FRONT);
+			Game_Sleep(XConfig.SPIRIT_TIME_FRONT);
             m_BallCount++;
 			//Car_Stop();
-			if (m_BallCount >= NUM_OF_BALL ) Switch_State(STATE_FIND_GOAL);
+			if (m_BallCount >= XConfig.NUM_OF_BALL ) Switch_State(STATE_FIND_GOAL);
 		}
 	}
+
+	public void STATE_CLEAN_PATH_func()
+	{
+		Car_Rotate_Left();
+		Game_Sleep(XConfig.TIME_FOR_ROTATE);
+		Servo1_Down();
+		Game_Sleep(XConfig.TIME_FOR_SERVO1_UP);
+		Car_Rotate_Right();
+		Game_Sleep(XConfig.TIME_FOR_ROTATE);
+		Switch_State(STATE_FIND_BALL);
+	}
+
 	public void STATE_FIND_GOAL_func()
 	{
         /*m_BallCount = 0;
@@ -250,12 +275,7 @@ public class Gameplay
 	{
 		if (XConfig.USE_GYROSCOPE)
 		{
-			if (((m_SwitchMessage & (SWITCH_LEFT | SWITCH_RIGHT)) != 0))//Xe đụng 1 trong 2 công tắc
-			{
-				Car_Stop();
-				Switch_State(STATE_RELEASE_BALL);
-				return;
-			} else if (m_ColorMessage == COLOR_NEAR) {
+			if (m_ColorMessage == COLOR_NEAR) {
 				//xe gần Goal nhưng góc lệch quá nhiều phải xoay lại
 				if (m_VectorDetect.getX() < orientations[0] - ANGLE_DIFF) { //ANGLE_DIFF: góc lệch, hằng số
 					Log.d("dung.levan", "right");
@@ -280,6 +300,11 @@ public class Gameplay
 				}
 			}
 		}
+
+		if (((m_SwitchMessage & (SWITCH_LEFT | SWITCH_RIGHT)) != 0))
+		{
+			Switch_State(STATE_RELEASE_BALL);
+		}
 		switch (m_ColorMessage) {
 			case COLOR_ZERO:// dang follow ball ma bi mat focus
 				Car_Stop();
@@ -303,11 +328,12 @@ public class Gameplay
 	public void STATE_RELEASE_BALL_func() {
         if (XConfig.isTEAM_STORMX) {
 			Servo1_Down_Release_Ball();
-            Motor_Blow_Out();
-            Game_Sleep(TIME_FOR_BLOW_OUT);
-            Motor_Stop();
+//            Motor_Blow_Out();
+//            Game_Sleep(TIME_FOR_BLOW_OUT);
+//            Motor_Stop();
+			Game_Sleep(XConfig.TIME_FOR_SERVO1_UP);
             Car_Backward();
-            Game_Sleep(TIME_FOR_CAR_BACKWARD);
+            Game_Sleep(XConfig.TIME_FOR_CAR_BACKWARD);
             Car_Stop();
             Switch_State(STATE_FIND_BALL);
         } else {
@@ -315,9 +341,9 @@ public class Gameplay
 
             //Chạy luôn hạ càng
 
-            Game_Sleep(SPIRIT_TIME_FRONT);
+            Game_Sleep(XConfig.SPIRIT_TIME_FRONT);
             Car_Backward();
-            Game_Sleep(TIME_FOR_CAR_BACKWARD);
+            Game_Sleep(XConfig.TIME_FOR_CAR_BACKWARD);
             Car_Stop();
             Switch_State(STATE_FIND_BALL);
         }
@@ -342,6 +368,12 @@ public class Gameplay
 			break;
 			case STATE_FIND_GOAL:
 				STATE_FIND_GOAL_func();
+			break;
+			case STATE_CENTER_BALL:
+				STATE_CENTER_BALL_func();
+				break;
+			case STATE_CLEAN_PATH:
+			STATE_CLEAN_PATH_func();
 			break;
 			case STATE_GO_GOAL:
 				STATE_GO_GOAL_func();
@@ -463,4 +495,8 @@ public class Gameplay
 	public int getState(){
         return m_State;
     }
+
+	public int getColorMessage(){
+		return m_ColorMessage;
+	}
 }

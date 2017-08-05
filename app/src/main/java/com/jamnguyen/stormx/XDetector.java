@@ -18,6 +18,7 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.imgproc.Moments;
 
 import java.util.List;
+import java.util.Vector;
 
 import static org.opencv.imgproc.Imgproc.contourArea;
 import static org.opencv.imgproc.Imgproc.minEnclosingCircle;
@@ -35,10 +36,11 @@ public class XDetector
     private Scalar                  m_BlobColorHsv;
     private Scalar                  m_BlobColorRgba;
     private Mat                     m_Spectrum;
+    private Scalar                  m_brightness;
     private MatOfPoint              m_ballContour;
     private Scalar                  m_circleColor;
     private Scalar                  m_contourColor;
-    private int               m_middleLine;
+    private int                     m_middleLine;
 
     private boolean                 m_isBallOnScreen = false;
     private int                     m_ballX = -1;
@@ -78,13 +80,14 @@ public class XDetector
         m_Spectrum = new Mat();
         m_BlobColorRgba = new Scalar(255);
         m_BlobColorHsv = new Scalar(255);
+        m_brightness = new Scalar(255);
         m_contourColor = new Scalar(255,0,0,255);
         m_circleColor = new Scalar(0, 0, 255, 255);
         m_screenArea = screenWidth*screenHeight;
 
         if(XConfig.USE_TRANSPOSE_MODE)
         {
-            m_middleLine = SCREEN_HEIGHT/2;
+            m_middleLine = SCREEN_HEIGHT/2 + XConfig.MIDDLE_OFFSET;
 
             m_midUpPoint = new Point(SCREEN_WIDTH, m_middleLine);
             m_midUpLeftPoint = new Point(SCREEN_WIDTH, m_middleLine - XConfig.MIDDLE_DELTA);
@@ -96,7 +99,7 @@ public class XDetector
         }
         else
         {
-            m_middleLine = SCREEN_WIDTH/2;
+            m_middleLine = SCREEN_WIDTH/2 + XConfig.MIDDLE_OFFSET;
 
             m_midUpPoint = new Point(m_middleLine, 0);
             m_midUpLeftPoint = new Point(m_middleLine - XConfig.MIDDLE_DELTA, 0);
@@ -203,9 +206,8 @@ public class XDetector
 			contours = m_BlobDetectorGreen.getContours();
 			// contours.addAll(m_BlobDetectorOrange.getContours());
 		}
-        
 
-        Imgproc.drawContours(rgbaInput, contours, -1, m_contourColor);
+		Imgproc.drawContours(rgbaInput, contours, -1, m_contourColor);
 
         //Get biggest area contour
         int indexOfBiggestContour = GetIndexOfBiggestContour(contours);
