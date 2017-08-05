@@ -23,14 +23,15 @@ public class Gameplay
 
 	public static final String MESSEAGE_SERVO1_UP                = "G";
 	public static final String MESSEAGE_SERVO1_DOWN              = "H";
+	public static final String MESSEAGE_SERVO1_DOWN_RELEASE_BALL              = "M";
 	public static final String MESSEAGE_SERVO2_OPEN              = "I";
 	public static final String MESSEAGE_SERVO12_CLOSE            = "J";
 
     public static final int SWITCH_LEFT = 0X10;
     public static final int SWITCH_RIGHT = 0X01;
     public static final int NUM_BALL = 1;
-	public static final int ANGLE_DIFF = 4;
-	public static final int ANGLE_DIFF_SMALL = 2;
+	public static final int ANGLE_DIFF = 6;
+	public static final int ANGLE_DIFF_SMALL = 4;
 	private XDetector m_Detector;
     private XBluetooth m_Bluetooth;
 	private XVectorDetection m_VectorDetect = null;
@@ -54,10 +55,10 @@ public class Gameplay
 	public static final int STATE_RELEASE_BALL = 6;
 	
 	public long m_CurrentTime = 0;
-	public static final int TIME_FOR_BLOW_OUT = 4000;
-	public static final int TIME_FOR_BLOW_IN = 5000;
+	public static final int TIME_FOR_BLOW_OUT = 1500;
+	public static final int TIME_FOR_BLOW_IN = 1500;
 	public static final int TIME_FOR_SERVO1_UP = 200;
-	public static final int TIME_FOR_CAR_BACKWARD = 2000;
+	public static final int TIME_FOR_CAR_BACKWARD = 1300;
     //Spirit
     public static final int SPIRIT_TIME_FRONT = 1000;
     public static final int SPIRIT_TIME_THROW = 1000;
@@ -206,7 +207,7 @@ public class Gameplay
 	}
 	public void STATE_FIND_GOAL_func()
 	{
-        m_BallCount = 0;
+        /*m_BallCount = 0;
 		 Log.d("dung.levan","STATE_GO_GOAL_func orientations " + orientations[0] + " - " + orientations[1] + " - " + orientations[2]);
          Log.d("dung.levan","STATE_GO_GOAL_func orientations " + m_VectorDetect.getX() + " - " + m_VectorDetect.getY() + " - " + m_VectorDetect.getZ());
         if (m_VectorDetect.getX() < orientations[0] - ANGLE_DIFF ){ //ANGLE_DIFF: góc lệch, hằng số
@@ -223,18 +224,34 @@ public class Gameplay
 			 // Car_Forward(); // NOTE: Xe chạy thẳng về khung, khi đụng vật cản mới chuyển state.
 			 				// Xin đừng chuyển state quá sớm, xe mất khả năng tự chỉnh góc.
 			Switch_State(STATE_GO_GOAL);//qua STATE_GO_GOAL mới chạy thẳng
-        }
-		
+        }*/
+		if(m_ColorMessage == COLOR_ZERO)
+		{
+			if((m_SwitchMessage & SWITCH_LEFT) != 0)
+			{
+				Car_Rotate_Right();
+			}
+			else
+			{
+				Car_Rotate_Left();
+			}
+		}
+		else
+		{
+			Car_Stop();
+			Switch_State(STATE_GO_GOAL);
+		}
 	}
 	public void STATE_GO_GOAL_func()
 	{
-		if(((m_SwitchMessage & (SWITCH_LEFT | SWITCH_RIGHT)) != 0))//Xe đụng 1 trong 2 công tắc
+		/*if(((m_SwitchMessage & (SWITCH_LEFT | SWITCH_RIGHT)) != 0))//Xe đụng 1 trong 2 công tắc
 		{
 			Car_Stop();
 			Switch_State(STATE_RELEASE_BALL);
 			return;
 		}
-		else if(m_ColorMessage == COLOR_NEAR)
+		else
+		if(m_ColorMessage == COLOR_NEAR)
 		{
 			//xe gần Goal nhưng góc lệch quá nhiều phải xoay lại
 			if (m_VectorDetect.getX() < orientations[0] - ANGLE_DIFF ){ //ANGLE_DIFF: góc lệch, hằng số
@@ -266,10 +283,31 @@ public class Gameplay
 			{
 				Car_Forward();
 			}
+		}*/
+		switch(m_ColorMessage)
+		{
+			case COLOR_ZERO:// dang follow ball ma bi mat focus
+				Car_Stop();
+				Switch_State(STATE_FIND_GOAL);
+				break;
+			case COLOR_NEAR:
+				Car_Stop();
+				Switch_State(STATE_RELEASE_BALL);
+				break;
+			case COLOR_LEFT:
+				Car_TurnLeft();
+				break;
+			case COLOR_RIGHT:
+				Car_TurnRight();
+				break;
+			case COLOR_MIDDLE:
+				Car_Forward();
+				break;
 		}
 	}
 	public void STATE_RELEASE_BALL_func() {
         if (isTEAM_STORMX) {
+			Servo1_Down_Release_Ball();
             Motor_Blow_Out();
             Game_Sleep(TIME_FOR_BLOW_OUT);
             Motor_Stop();
@@ -369,6 +407,10 @@ public class Gameplay
 	public void Servo1_Down()
 	{
 		sendCommnand(MESSEAGE_SERVO1_DOWN);
+	}
+	public void Servo1_Down_Release_Ball()
+	{
+		sendCommnand(MESSEAGE_SERVO1_DOWN_RELEASE_BALL);
 	}
 	public void Servo1_Up()
 	{

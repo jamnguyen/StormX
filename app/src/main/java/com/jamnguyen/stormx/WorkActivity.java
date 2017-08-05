@@ -36,7 +36,7 @@ import static org.opencv.imgproc.Imgproc.contourArea;
 public class WorkActivity extends Activity implements View.OnTouchListener, CvCameraViewListener2
 {
     private static final String  TAG              = "OCVSample::Activity";
-    public static boolean isTEAM_STORMX = false;// set team nào StormX hay Spirit
+    public static boolean isTEAM_STORMX = true;// set team nào StormX hay Spirit
 
     private XCameraView     m_OpenCvCameraView;
     private boolean         m_isBallOnScreen = false;
@@ -84,8 +84,8 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
         //Camera
         m_OpenCvCameraView = (XCameraView) findViewById(R.id.activity_java_surface_view);
         m_OpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
-        Size resolution = new Size(768,432);
-        m_OpenCvCameraView.setResolution(resolution);
+//        Size resolution = new Size(768,432);
+//        m_OpenCvCameraView.setResolution(resolution);
         m_OpenCvCameraView.setCvCameraViewListener(this);
         
         //Bluetooth
