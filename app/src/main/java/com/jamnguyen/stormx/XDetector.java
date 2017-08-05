@@ -9,6 +9,7 @@ import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
@@ -19,36 +20,32 @@ import org.opencv.imgproc.Moments;
 import java.util.List;
 
 import static org.opencv.imgproc.Imgproc.contourArea;
+import static org.opencv.imgproc.Imgproc.minEnclosingCircle;
 
 public class XDetector
 {
-    public static boolean           USE_TRANSPOSE_MODE = true;
-
-    public static double            BALL_AREA_RATIO    = 0.11;
-    public static double            SPIRIT_BALL_AREA_RATIO    = 0.78;
-    public static double            GOAL_AREA_RATIO    = 0.20;
-    public static int               MIDDLE_LINE;
-    public static final double      MIDDLE_DELTA         = 120;
     public int                      SCREEN_WIDTH;
     public int                      SCREEN_HEIGHT;
-
     private Context                 m_appContext;
 
     private ColorBlobDetector       m_BlobDetectorPink;
+
     private ColorBlobDetector       m_BlobDetectorOrange;
     private ColorBlobDetector       m_BlobDetectorGreen;
     private Scalar                  m_BlobColorHsv;
     private Scalar                  m_BlobColorRgba;
     private Mat                     m_Spectrum;
     private MatOfPoint              m_ballContour;
-    private Size                    SPECTRUM_SIZE;
-    private Scalar                  CONTOUR_COLOR;
-    private Scalar                  CIRLCE_COLOR;
+    private Scalar                  m_circleColor;
+    private Scalar                  m_contourColor;
+    private int               m_middleLine;
 
     private boolean                 m_isBallOnScreen = false;
     private int                     m_ballX = -1;
     private int                     m_ballY = -1;
     private double                  m_ballArea;
+    private Point                   m_ballCenter;
+    private int                     m_ballRadius;
     private double                  m_screenArea;
     private Point                   m_midUpPoint;
     private Point                   m_midDownPoint;
@@ -69,7 +66,7 @@ public class XDetector
 		return m_isDetectBall;
 	}
 
-    public XDetector(Context context, int screenWidth, int screenHeight/*, boolean isStormX*/)
+    public XDetector(Context context, int screenWidth, int screenHeight)
     {
         m_appContext = context;
         SCREEN_WIDTH = screenWidth;
@@ -81,56 +78,40 @@ public class XDetector
         m_Spectrum = new Mat();
         m_BlobColorRgba = new Scalar(255);
         m_BlobColorHsv = new Scalar(255);
-        SPECTRUM_SIZE = new Size(200, 64);
-        CONTOUR_COLOR = new Scalar(255,0,0,255);
-        CIRLCE_COLOR = new Scalar(0, 0, 255, 255);
+        m_contourColor = new Scalar(255,0,0,255);
+        m_circleColor = new Scalar(0, 0, 255, 255);
         m_screenArea = screenWidth*screenHeight;
 
-        if(USE_TRANSPOSE_MODE)
+        if(XConfig.USE_TRANSPOSE_MODE)
         {
-            MIDDLE_LINE = SCREEN_HEIGHT/2;
+            m_middleLine = SCREEN_HEIGHT/2;
 
-            m_midUpPoint = new Point(SCREEN_WIDTH, MIDDLE_LINE);
-            m_midUpLeftPoint = new Point(SCREEN_WIDTH, MIDDLE_LINE - MIDDLE_DELTA);
-            m_midUpRightPoint = new Point(SCREEN_WIDTH, MIDDLE_LINE + MIDDLE_DELTA);
+            m_midUpPoint = new Point(SCREEN_WIDTH, m_middleLine);
+            m_midUpLeftPoint = new Point(SCREEN_WIDTH, m_middleLine - XConfig.MIDDLE_DELTA);
+            m_midUpRightPoint = new Point(SCREEN_WIDTH, m_middleLine + XConfig.MIDDLE_DELTA);
 
-            m_midDownPoint = new Point(0, MIDDLE_LINE);
-            m_midDownLeftPoint = new Point(0, MIDDLE_LINE - MIDDLE_DELTA);
-            m_midDownRightPoint = new Point(0, MIDDLE_LINE + MIDDLE_DELTA);
+            m_midDownPoint = new Point(0, m_middleLine);
+            m_midDownLeftPoint = new Point(0, m_middleLine - XConfig.MIDDLE_DELTA);
+            m_midDownRightPoint = new Point(0, m_middleLine + XConfig.MIDDLE_DELTA);
         }
         else
         {
-            MIDDLE_LINE = SCREEN_WIDTH/2;
+            m_middleLine = SCREEN_WIDTH/2;
 
-            m_midUpPoint = new Point(MIDDLE_LINE, 0);
-            m_midUpLeftPoint = new Point(MIDDLE_LINE - MIDDLE_DELTA, 0);
-            m_midUpRightPoint = new Point(MIDDLE_LINE + MIDDLE_DELTA, 0);
+            m_midUpPoint = new Point(m_middleLine, 0);
+            m_midUpLeftPoint = new Point(m_middleLine - XConfig.MIDDLE_DELTA, 0);
+            m_midUpRightPoint = new Point(m_middleLine + XConfig.MIDDLE_DELTA, 0);
 
-            m_midDownPoint = new Point(MIDDLE_LINE, SCREEN_HEIGHT);
-            m_midDownLeftPoint = new Point(MIDDLE_LINE - MIDDLE_DELTA, SCREEN_HEIGHT);
-            m_midDownRightPoint = new Point(MIDDLE_LINE + MIDDLE_DELTA, SCREEN_HEIGHT);
+            m_midDownPoint = new Point(m_middleLine, SCREEN_HEIGHT);
+            m_midDownLeftPoint = new Point(m_middleLine - XConfig.MIDDLE_DELTA, SCREEN_HEIGHT);
+            m_midDownRightPoint = new Point(m_middleLine + XConfig.MIDDLE_DELTA, SCREEN_HEIGHT);
         }
 
-        //StormX color
-        //Pink: 233.0625, 183.109375, 225.0
-        //Orange: 13.640625, 193.3125, 231.578125
-        //Green: 101.0625, 162.921875, 110.390625
-        //Green2: 83.828125, 198.8125, 118.359375
-        //Room 1:
-        //Pink: 240.25, 201.96875, 192.65625
-        //Orange: 13.640625, 193.3125, 231.578125
-
-        //Spirit color
-        //Pink: 245.8125, 177.328125, 218.0
-        //Orange: 14.0, 209.71875, 212.96875
-        //Green: 91.140625, 207.734375, 74.8125
-
-//        m_BlobColorHsv = new Scalar(233.0625, 183.109375, 225.0, 0.0);
-        m_BlobColorHsv = new Scalar(240.25, 201.96875, 192.65625, 0.0);
+        m_BlobColorHsv = new Scalar(XConfig.COLOR_PINK[0], XConfig.COLOR_PINK[1], XConfig.COLOR_PINK[2], 0.0);
         m_BlobDetectorPink.setHsvColor(m_BlobColorHsv);
-        m_BlobColorHsv = new Scalar(13.640625, 193.3125, 231.578125, 0.0);
+        m_BlobColorHsv = new Scalar(XConfig.COLOR_ORANGE[0], XConfig.COLOR_ORANGE[1], XConfig.COLOR_ORANGE[2], 0.0);
         m_BlobDetectorOrange.setHsvColor(m_BlobColorHsv);
-        m_BlobColorHsv = new Scalar(101.0625, 162.921875, 110.390625, 0.0);
+        m_BlobColorHsv = new Scalar(XConfig.COLOR_GREEN[0], XConfig.COLOR_GREEN[1], XConfig.COLOR_GREEN[2], 0.0);
         m_BlobDetectorGreen.setHsvColor(m_BlobColorHsv);
     }
 
@@ -224,7 +205,7 @@ public class XDetector
 		}
         
 
-        Imgproc.drawContours(rgbaInput, contours, -1, CONTOUR_COLOR);
+        Imgproc.drawContours(rgbaInput, contours, -1, m_contourColor);
 
         //Get biggest area contour
         int indexOfBiggestContour = GetIndexOfBiggestContour(contours);
@@ -234,7 +215,29 @@ public class XDetector
             //Handle catching
             m_isBallOnScreen = true;
             m_ballContour = contours.get(indexOfBiggestContour);
-//                IM_Update(true);
+
+            if(XConfig.DETECT_COLOR_WITH_CIRCLE)
+            {
+                /// Hough circle
+                MatOfPoint2f current_contour = new MatOfPoint2f(m_ballContour.toArray());
+                m_ballCenter = new Point();
+                float []current_contour_radius = new float[1];
+                minEnclosingCircle(current_contour, m_ballCenter, current_contour_radius);
+
+                if (current_contour_radius[0] > 0) {
+
+                    m_ballRadius = (int) current_contour_radius[0];
+//                    m_ballArea = 3.14 * m_ballRadius * m_ballRadius;
+                }
+                else
+                {
+                    m_ballRadius = 0;
+                }
+            }
+            else
+            {
+                m_ballCenter = GetCenterPointOfContour(m_ballContour);
+            }
         }
         else
         {
@@ -247,7 +250,11 @@ public class XDetector
 
         //Draw center point
         if(m_ballContour != null) {
-            Imgproc.circle(rgbaInput, GetCenterPointOfContour(m_ballContour), 20, CIRLCE_COLOR, -1);
+            Imgproc.circle(rgbaInput, GetCenterPointOfContour(m_ballContour), 20, m_circleColor, -1);
+            if(XConfig.DETECT_COLOR_WITH_CIRCLE)
+            {
+                Imgproc.circle(rgbaInput, m_ballCenter, m_ballRadius, new Scalar(100, 255, 50));
+            }
 
             Mat colorLabel = rgbaInput.submat(4, 68, 4, 68);
             colorLabel.setTo(m_BlobColorRgba);
@@ -385,12 +392,25 @@ public class XDetector
 
     public int getMiddleLine()
     {
-        return MIDDLE_LINE;
+        return m_middleLine;
     }
 
     public double getBallArea()
     {
         return m_ballArea;
+    }
+
+    public int getBallRadius()
+    {
+        return m_ballRadius;
+    }
+
+    public double getBallDistance()
+    {
+        if(m_ballRadius > 0)
+            return XConfig.XA_DISTANCE_FACTOR / m_ballRadius;
+        else
+            return -1;
     }
 
     public double getScreenArea()

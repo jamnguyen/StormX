@@ -66,19 +66,20 @@ public class Gameplay
 
 	public static boolean ANDROID_STARTED = false;
 	public static boolean ANDROID_INITIALIZED = false;
-	public static boolean isTEAM_STORMX = true;
 	public static int m_BallCount = 0;//đếm số banh hiện tại
 
 
 	public Gameplay(){
 		m_Bluetooth = null;
 	}
-	public Gameplay(XBluetooth BT, XDetector DT, Context context, boolean isStormX)
+	public Gameplay(XBluetooth BT, XDetector DT, Context context)
     {
         m_Bluetooth = BT;
         m_Detector = DT;
-		isTEAM_STORMX = isStormX;
-		m_VectorDetect = new XVectorDetection(context, isTEAM_STORMX);
+		if(XConfig.USE_GYROSCOPE)
+		{
+			m_VectorDetect = new XVectorDetection(context);
+		}
 		//m_VectorInit = null;
 		m_State = STATE_INIT;
 		orientations = new int[3];
@@ -118,10 +119,13 @@ public class Gameplay
 		m_Detector.init();
         //Set GOAL vector
         Log.d("dung.levan","STATE_INIT_func");
-		orientations[0] = (int) m_VectorDetect.getX();
-		orientations[1] = (int)m_VectorDetect.getY();
-		orientations[2] = (int)m_VectorDetect.getZ();
-        Log.d("dung.levan","orientations " + orientations[0] + " - " + orientations[1] + " - " + orientations[2]);
+		if(XConfig.USE_GYROSCOPE)
+		{
+			orientations[0] = (int) m_VectorDetect.getX();
+			orientations[1] = (int)m_VectorDetect.getY();
+			orientations[2] = (int)m_VectorDetect.getZ();
+			Log.d("dung.levan","orientations " + orientations[0] + " - " + orientations[1] + " - " + orientations[2]);
+		}
 		Switch_State(STATE_FIND_BALL);
 		//Switch_State(STATE_FOLLOW_BALL);
 //		Switch_State(STATE_FIND_GOAL); // Đang test về khung lưới
@@ -184,7 +188,7 @@ public class Gameplay
 	}
 	public void STATE_CATCH_BALL_func()
 	{
-		if (isTEAM_STORMX) {
+		if (XConfig.isTEAM_STORMX) {
 			Motor_Blow_In();
 			Servo1_Down();
 			Game_Sleep(TIME_FOR_BLOW_IN);
@@ -244,48 +248,39 @@ public class Gameplay
 	}
 	public void STATE_GO_GOAL_func()
 	{
-		/*if(((m_SwitchMessage & (SWITCH_LEFT | SWITCH_RIGHT)) != 0))//Xe đụng 1 trong 2 công tắc
+		if (XConfig.USE_GYROSCOPE)
 		{
-			Car_Stop();
-			Switch_State(STATE_RELEASE_BALL);
-			return;
-		}
-		else
-		if(m_ColorMessage == COLOR_NEAR)
-		{
-			//xe gần Goal nhưng góc lệch quá nhiều phải xoay lại
-			if (m_VectorDetect.getX() < orientations[0] - ANGLE_DIFF ){ //ANGLE_DIFF: góc lệch, hằng số
-				Log.d("dung.levan","right");
-				Car_Rotate_Right(); // Xoay xe qua phải
-			} else if (m_VectorDetect.getX() > orientations[0] + ANGLE_DIFF) {
-				Log.d("dung.levan","left");
-				Car_Rotate_Left(); // Xoay xe qua trái
-			}
-			else//xe gần Goal và đã đúng góc chuyển state nhả banh
+			if (((m_SwitchMessage & (SWITCH_LEFT | SWITCH_RIGHT)) != 0))//Xe đụng 1 trong 2 công tắc
 			{
 				Car_Stop();
 				Switch_State(STATE_RELEASE_BALL);
 				return;
+			} else if (m_ColorMessage == COLOR_NEAR) {
+				//xe gần Goal nhưng góc lệch quá nhiều phải xoay lại
+				if (m_VectorDetect.getX() < orientations[0] - ANGLE_DIFF) { //ANGLE_DIFF: góc lệch, hằng số
+					Log.d("dung.levan", "right");
+					Car_Rotate_Right(); // Xoay xe qua phải
+				} else if (m_VectorDetect.getX() > orientations[0] + ANGLE_DIFF) {
+					Log.d("dung.levan", "left");
+					Car_Rotate_Left(); // Xoay xe qua trái
+				} else//xe gần Goal và đã đúng góc chuyển state nhả banh
+				{
+					Car_Stop();
+					Switch_State(STATE_RELEASE_BALL);
+					return;
+				}
+			} else {
+				//Xe vừa chạy vừa điều chỉnh khi chạy về goal
+				if (m_VectorDetect.getX() < orientations[0] - ANGLE_DIFF_SMALL) {
+					Car_TurnRight();
+				} else if (m_VectorDetect.getX() > orientations[0] + ANGLE_DIFF_SMALL) {
+					Car_TurnLeft();
+				} else {
+					Car_Forward();
+				}
 			}
 		}
-		else
-		{
-			//Xe vừa chạy vừa điều chỉnh khi chạy về goal
-			if (m_VectorDetect.getX() < orientations[0] - ANGLE_DIFF_SMALL )
-			{
-				Car_TurnRight();
-			} 
-			else if (m_VectorDetect.getX() > orientations[0] + ANGLE_DIFF_SMALL) 
-			{
-				Car_TurnLeft();
-			} 
-			else
-			{
-				Car_Forward();
-			}
-		}*/
-		switch(m_ColorMessage)
-		{
+		switch (m_ColorMessage) {
 			case COLOR_ZERO:// dang follow ball ma bi mat focus
 				Car_Stop();
 				Switch_State(STATE_FIND_GOAL);
@@ -306,7 +301,7 @@ public class Gameplay
 		}
 	}
 	public void STATE_RELEASE_BALL_func() {
-        if (isTEAM_STORMX) {
+        if (XConfig.isTEAM_STORMX) {
 			Servo1_Down_Release_Ball();
             Motor_Blow_Out();
             Game_Sleep(TIME_FOR_BLOW_OUT);
@@ -428,15 +423,24 @@ public class Gameplay
 	}
 
     public float getX() {
-        return m_VectorDetect.getX();
+		if(XConfig.USE_GYROSCOPE)
+        	return m_VectorDetect.getX();
+		else
+			return 0;
     }
 
 	public float getY() {
-		return  m_VectorDetect.getY();
+		if(XConfig.USE_GYROSCOPE)
+			return m_VectorDetect.getY();
+		else
+			return 0;
 	}
 
 	public float getZ() {
-		return  m_VectorDetect.getZ();
+		if(XConfig.USE_GYROSCOPE)
+			return m_VectorDetect.getZ();
+		else
+			return 0;
 	}
 	public  int[] getOrientations(){
 		return orientations;

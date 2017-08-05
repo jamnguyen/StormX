@@ -18,7 +18,7 @@ public class XVectorDetection{
     float x,y,z;
    // Context context;
 
-    public XVectorDetection(final Context mContext,final boolean isStormX){
+    public XVectorDetection(final Context mContext){
 		super();
         sensorManager = (SensorManager) mContext.getSystemService(Context.SENSOR_SERVICE);
         rotationVectorSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
