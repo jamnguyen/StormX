@@ -303,6 +303,7 @@ public class Gameplay
 
 		if (((m_SwitchMessage & (SWITCH_LEFT | SWITCH_RIGHT)) != 0))
 		{
+			Car_Stop();
 			Switch_State(STATE_RELEASE_BALL);
 		}
 		switch (m_ColorMessage) {
@@ -315,10 +316,10 @@ public class Gameplay
 				Switch_State(STATE_RELEASE_BALL);
 				break;
 			case COLOR_LEFT:
-				Car_TurnLeft();
+				Car_Rotate_Left();
 				break;
 			case COLOR_RIGHT:
-				Car_TurnRight();
+				Car_Rotate_Right();
 				break;
 			case COLOR_MIDDLE:
 				Car_Forward();

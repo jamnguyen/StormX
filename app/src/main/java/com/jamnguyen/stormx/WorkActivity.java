@@ -185,7 +185,7 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
 //                    if(!XConfig.isTEAM_STORMX)
 //                        area_ratio = XConfig.SPIRIT_BALL_AREA_RATIO;
                     double distance = m_XDetector.getBallDistance();
-                    if (distance <= XConfig.BALL_CATCH_DISTANCE)
+                    if (distance <= XConfig.BALL_CATCH_DISTANCE && m_Game.getState() != Gameplay.STATE_FIND_GOAL && m_Game.getState() != Gameplay.STATE_GO_GOAL)
                     {
                         Log.d("dung.levan", "m_XDetector.getBallArea() = " + m_XDetector.getBallArea() + " -- " + m_XDetector.getScreenArea() + " -- ball distance = " + distance);
                         m_Game.SetColorMessage(Gameplay.COLOR_NEAR);
