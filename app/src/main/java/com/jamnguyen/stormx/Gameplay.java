@@ -72,9 +72,12 @@ public class Gameplay
     {
         m_Bluetooth = BT;
         m_Detector = DT;
-		if(XConfig.USE_GYROSCOPE)
+		if(XConfig.USE_ROTATION_VECTOR)
 		{
 			m_VectorDetect = new XVectorDetection(context);
+		}
+		if(XConfig.USE_GYROSCOPE)
+		{
 			m_Gyroscope = new Gyroscope(context);
 		}
 		//m_VectorInit = null;
@@ -116,7 +119,7 @@ public class Gameplay
 		m_Detector.init();
         //Set GOAL vector
         Log.d("dung.levan","STATE_INIT_func");
-		if(XConfig.USE_GYROSCOPE)
+		if(XConfig.USE_ROTATION_VECTOR)
 		{
 			orientations[0] = (int) m_VectorDetect.getX();
 			orientations[1] = (int)m_VectorDetect.getY();
@@ -270,13 +273,29 @@ public class Gameplay
 		}
 		else
 		{
+			switch (m_ColorMessage)
+			{
+				case COLOR_NEAR:
+					Car_Stop();
+					Switch_State(STATE_GO_GOAL);
+					break;
+				case COLOR_LEFT:
+					Car_Rotate_Left();
+					break;
+				case COLOR_RIGHT:
+					Car_Rotate_Right();
+					break;
+				case COLOR_MIDDLE:
+					Switch_State(STATE_GO_GOAL);
+					break;
+			}
 			Car_Stop();
 			Switch_State(STATE_GO_GOAL);
 		}
 	}
 	public void STATE_GO_GOAL_func()
 	{
-		if (XConfig.USE_GYROSCOPE)
+		if (XConfig.USE_ROTATION_VECTOR)
 		{
 			if (m_ColorMessage == COLOR_NEAR) {
 				//xe gần Goal nhưng góc lệch quá nhiều phải xoay lại
@@ -306,17 +325,19 @@ public class Gameplay
 
 		if (((m_SwitchMessage & (SWITCH_LEFT | SWITCH_RIGHT)) != 0))
 		{
-			Car_Stop();
 			Switch_State(STATE_RELEASE_BALL);
 		}
+
+//		Car_Forward();
+
 		switch (m_ColorMessage) {
 			case COLOR_ZERO:// dang follow ball ma bi mat focus
 				Car_Stop();
 				Switch_State(STATE_FIND_GOAL);
 				break;
 			case COLOR_NEAR:
-				Car_Stop();
-				Switch_State(STATE_RELEASE_BALL);
+//				Car_Stop();
+//				Switch_State(STATE_RELEASE_BALL);
 				break;
 			case COLOR_LEFT:
 				Car_Rotate_Left();
@@ -330,14 +351,17 @@ public class Gameplay
 		}
 	}
 	public void STATE_RELEASE_BALL_func() {
+		Car_Stop();
         if (XConfig.isTEAM_STORMX) {
-			Servo1_Down_Release_Ball();
-//            Motor_Blow_Out();
-//            Game_Sleep(TIME_FOR_BLOW_OUT);
-//            Motor_Stop();
+			Servo1_Down();
 			Game_Sleep(XConfig.TIME_FOR_SERVO1_UP);
-            Car_Backward();
-            Game_Sleep(XConfig.TIME_FOR_CAR_BACKWARD);
+            Motor_Blow_Out();
+			Game_Sleep(XConfig.TIME_FOR_BLOW_OUT);
+			Motor_Stop();
+			Servo1_Up();
+			Game_Sleep(XConfig.TIME_FOR_SERVO1_UP);
+			Car_Backward();
+			Game_Sleep(XConfig.TIME_FOR_CAR_BACKWARD);
             Car_Stop();
             Switch_State(STATE_FIND_BALL);
         } else {
@@ -459,21 +483,21 @@ public class Gameplay
 	}
 
     public float getX() {
-		if(XConfig.USE_GYROSCOPE)
+		if(XConfig.USE_ROTATION_VECTOR)
         	return m_VectorDetect.getX();
 		else
 			return 0;
     }
 
 	public float getY() {
-		if(XConfig.USE_GYROSCOPE)
+		if(XConfig.USE_ROTATION_VECTOR)
 			return m_VectorDetect.getY();
 		else
 			return 0;
 	}
 
 	public float getZ() {
-		if(XConfig.USE_GYROSCOPE)
+		if(XConfig.USE_ROTATION_VECTOR)
 			return m_VectorDetect.getZ();
 		else
 			return 0;

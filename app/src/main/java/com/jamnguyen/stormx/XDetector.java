@@ -63,7 +63,7 @@ public class XDetector
 	{
 		m_isDetectBall = value;
 	}
-	public boolean 	getDetectBall()
+	public boolean 	isDetectBall()
 	{
 		return m_isDetectBall;
 	}
@@ -218,7 +218,7 @@ public class XDetector
             m_isBallOnScreen = true;
             m_ballContour = contours.get(indexOfBiggestContour);
 
-            if(XConfig.DETECT_COLOR_WITH_CIRCLE)
+            if(XConfig.DETECT_COLOR_WITH_CIRCLE && m_isDetectBall)
             {
                 /// Hough circle
                 MatOfPoint2f current_contour = new MatOfPoint2f(m_ballContour.toArray());
