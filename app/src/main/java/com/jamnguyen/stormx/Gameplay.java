@@ -61,6 +61,8 @@ public class Gameplay
 	public static boolean ANDROID_STARTED = false;
 	public static boolean ANDROID_INITIALIZED = false;
 	public static int m_BallCount = 0;//đếm số banh hiện tại
+	/// Gyroscope
+	public static Gyroscope m_Gyroscope = null;
 
 
 	public Gameplay(){
@@ -73,6 +75,7 @@ public class Gameplay
 		if(XConfig.USE_GYROSCOPE)
 		{
 			m_VectorDetect = new XVectorDetection(context);
+			m_Gyroscope = new Gyroscope(context);
 		}
 		//m_VectorInit = null;
 		m_State = STATE_INIT;
@@ -500,4 +503,11 @@ public class Gameplay
 	public int getColorMessage(){
 		return m_ColorMessage;
 	}
+	
+    public String getGyroscopeInfo () {
+		if (m_Gyroscope != null)
+			return "Pos: " + m_Gyroscope.getCurrentDirection() + " | Degree: " + m_Gyroscope.getCurrentDegree();
+		return "Gyroscope";
+	}
+
 }
