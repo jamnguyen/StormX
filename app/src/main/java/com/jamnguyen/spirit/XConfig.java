@@ -7,9 +7,10 @@ public class XConfig
     public static final boolean     isTEAM_STORMX               = false;
     public static final boolean     USE_ROTATION_VECTOR         = false;
     public static final boolean     USE_GYROSCOPE               = true;
+    public static final double     GYROSCOPE_MOMENT_DEFAULT               = 86;//Phone của Tiến
     public static final int     DEGREE_DELTA               = 30;
     public static final int     DEGREE_DELTA_SMALL               = 15;
-    public static final long     TIME_DELAY_FOR_GET_MOMENT               = 100;
+    
     public static final boolean     DETECT_COLOR_WITH_CIRCLE    = true;
 
 

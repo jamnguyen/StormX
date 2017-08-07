@@ -64,7 +64,7 @@ public class Gameplay
 	/// Gyroscope
 	private static Gyroscope m_Gyroscope = null;
 	private static double m_MomentInit = 0;
-	private static double  m_MomentOfPhone      = 1600;
+	private static double  m_MomentOfPhone      = XConfig.GYROSCOPE_MOMENT_DEFAULT;//phone của Tiến
 
 	public Gameplay(){
 		m_Bluetooth = null;
