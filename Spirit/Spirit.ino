@@ -44,6 +44,9 @@
 #define MESSEAGE_LIMIT_RIGHT        '1'
 #define MESSEAGE_LIMIT_BOTH         '3'
 
+#define MESSEAGE_MOTOR_UP           'O'
+#define MESSEAGE_MOTOR_DOWN         'N'
+
 #define MOTOR_SPEED_MIN             100
 #define MOTOR_SPEED_ROTATE_MAX      200
 #define MOTOR_SPEED_ROTATE_MIN      100
@@ -82,27 +85,26 @@ void loop()
       //Write command
       unsigned long curr = micros();    
       if(curr - _lastTime >= (100l * 1000l)) {    
-      //
-      int limit_left = digitalRead(MOTOR_LEFT_LIMIT_PIN);
-      int limit_right = digitalRead(MOTOR_RIGHT_LIMIT_PIN);
-      if (limit_left == LOW && limit_right == LOW) {
-        writeCommand(MESSEAGE_LIMIT_BOTH);
-        digitalWrite(LED_DEBUG, HIGH);
-        Log("MESSEAGE_LIMIT_BOTH");
-      } else if (limit_left == LOW) {
-        writeCommand(MESSEAGE_LIMIT_LEFT);
-        digitalWrite(LED_DEBUG, HIGH);
-        Log("MESSEAGE_LIMIT_LEFT");
-      } else if (limit_right == LOW) {
-        writeCommand(MESSEAGE_LIMIT_RIGHT);
-        digitalWrite(LED_DEBUG, HIGH);
-        Log("MESSEAGE_LIMIT_RIGHT");
-      } else {
-        writeCommand(MESSEAGE_LIMIT_NONE);
-        digitalWrite(LED_DEBUG, LOW);
-      }
-      //
-      _lastTime = curr;
+        //
+        int limit_left = digitalRead(MOTOR_LEFT_LIMIT_PIN);
+        int limit_right = digitalRead(MOTOR_RIGHT_LIMIT_PIN);
+        if (limit_left == LOW && limit_right == LOW) {
+          writeCommand(MESSEAGE_LIMIT_BOTH);
+          digitalWrite(LED_DEBUG, HIGH);
+          Log("MESSEAGE_LIMIT_BOTH");
+        } else if (limit_left == LOW) {
+          writeCommand(MESSEAGE_LIMIT_LEFT);
+          digitalWrite(LED_DEBUG, HIGH);
+          Log("MESSEAGE_LIMIT_LEFT");
+        } else if (limit_right == LOW) {
+          writeCommand(MESSEAGE_LIMIT_RIGHT);
+          digitalWrite(LED_DEBUG, HIGH);
+          Log("MESSEAGE_LIMIT_RIGHT");
+        } else {
+          writeCommand(MESSEAGE_LIMIT_NONE);
+          digitalWrite(LED_DEBUG, LOW);
+        }
+        _lastTime = curr;
     }
     
     //Read command
@@ -128,12 +130,12 @@ void loop()
         _left.setSpeed(-MOTOR_SPEED_ROTATE);
         _right.setSpeed(MOTOR_SPEED_ROTATE);
         break;
-      case MESSEAGE_TURNLEFT :
+      case MESSEAGE_TURNLEFT:
         Log("MESSEAGE_RUNLEFT");
         _left.setSpeed(MOTOR_SPEED_ROTATE_MIN);
         _right.setSpeed(MOTOR_SPEED_ROTATE_MAX);
         break;
-      case MESSEAGE_ROTATERIGHT :
+      case MESSEAGE_ROTATERIGHT:
         Log("MESSEAGE_TURNRIGHT");
         _left.setSpeed(MOTOR_SPEED_ROTATE);
         _right.setSpeed(-MOTOR_SPEED_ROTATE);
@@ -148,46 +150,13 @@ void loop()
         _left.setSpeed(0);
         _right.setSpeed(0);
         break;
-      case MESSEAGE_ROTATELEFT180:
-        Log("MESSEAGE_ROTATELEFT180");
-        //_right.setTargetPosition(180);
+      case MESSEAGE_MOTOR_UP:
+        Log("MESSEAGE_MOTOR_UP");
+        _middle.setSpeed(MOTOR_SPEED_MAX);
         break;
-      case MESSEAGE_ROTATERIGHT180:
-        Log("MESSEAGE_ROTATERIGHT180");
-        //_left.setTargetPosition(180);
-        break;
-      case MESSEAGE_MOTOR_BLOW_IN:
-        Log("MESSEAGE_MOTOR_BLOW_IN");
-        //Hut();
-        break;
-      case MESSEAGE_MOTOR_BLOW_OUT:
-        Log("MESSEAGE_MOTOR_BLOW_OUT");
-        //Thoi();
-        break;
-      case MESSEAGE_MOTOR_STOP:
-        Log("MESSEAGE_MOTOR_STOP");
-        //Dung();
-        break;
-      case MESSEAGE_SERVO1_UP:
-        Log("SERVO_UP_ANGLE");
-        //_servo_1.setTargetPosition(SERVO_UP_ANGLE);
-        //_servo_1.write(SERVO_UP_ANGLE);
-        break;
-      case MESSEAGE_SERVO1_DOWN:
-        Log("SERVO_DOWN_ANGLE");
-        //_servo_1.setTargetPosition(SERVO_DOWN_ANGLE);
-        //_servo_1.write(SERVO_DOWN_ANGLE);
-        break;
-      case MESSEAGE_SERVO1_DOWN_RELEASE_BALL:
-        Log("SERVO_DOWN_RELEASEBALL_ANGLE");
-        //_servo_1.write(SERVO_DOWN_RELEASEBALL_ANGLE);
-      case MESSEAGE_SERVO2_OPEN:
-        //_servo_2.setTargetPosition(SERVO_OPEN_ANGLE);
-        //_servo_2.write(SERVO_OPEN_ANGLE);
-        break;
-      case MESSEAGE_SERVO2_CLOSE:
-        //_servo_2.setTargetPosition(SERVO_CLOSE_ANGLE);
-        //_servo_2.write(SERVO_CLOSE_ANGLE);
+      case MESSEAGE_MOTOR_DOWN:
+        Log("MESSEAGE_MOTOR_DOWN");
+        _middle.setSpeed(-MOTOR_SPEED_MAX);
         break;
       default:
         break;
