@@ -4,13 +4,14 @@
 #define MOTOR_LEFT_LIMIT_PIN        11  // Uno Digital Pin 11
 
 #define MOTOR_RIGHT_INA_PIN         8  // Uno Digital Pin 8
-#define MOTOR_RIGHT_IN1_PIN         9  // Uno Digital Pin 8
+#define MOTOR_RIGHT_IN1_PIN         9  // Uno Digital Pin 9
 #define MOTOR_RIGHT_IN2_PIN         10  // Uno Digital Pin 10
 #define MOTOR_RIGHT_LIMIT_PIN       12  // Uno Digital Pin 12
 
-#define MOTOR_MID_PIN_EN            3
-#define MOTOR_MID_PIN_A1            2
-#define MOTOR_MID_PIN_A2            4
+#define MOTOR_MID_PIN_EN            3  // Uno Digital Pin 3
+#define MOTOR_MID_PIN_A1            2  // Uno Digital Pin 2
+#define MOTOR_MID_PIN_A2            4  // Uno Digital Pin 4
+#define MOTOR_MID_LIMIT_PIN         A0  // Uno Digital Pin A0
 
 #define LED_DEBUG                   13
 
@@ -70,6 +71,9 @@ void setup()
   
   //LIMIT LEFT
   pinMode(MOTOR_LEFT_LIMIT_PIN, INPUT_PULLUP);
+
+  //LIMIT MIDDLE
+  pinMode(MOTOR_MID_LIMIT_PIN, INPUT_PULLUP);
 
   //LIMIT RIGHT
   pinMode(MOTOR_RIGHT_LIMIT_PIN, INPUT_PULLUP);
@@ -164,7 +168,10 @@ void loop()
 	  
 	  //Update motor
   	_left.run();
-  	_middle.run();
+    if(digitalRead(MOTOR_MID_LIMIT_PIN) == HIGH) {
+      _middle.setSpeed(0);
+    }
+	  _middle.run();
   	_right.run();
   }
 }
