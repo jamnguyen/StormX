@@ -15,6 +15,7 @@ public class Gyroscope {
     private SensorManager       sensorManager;
     private SensorEventListener sensorEventListener;
     private double              sumOfMoment = 0;
+	private long m_TimeForGetMoment = 0;
 
     public Gyroscope (Context context) {
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
@@ -23,7 +24,10 @@ public class Gyroscope {
             @Override
             public void onSensorChanged(SensorEvent event) {
                 if (event.sensor.getType()==Sensor.TYPE_GYROSCOPE) {
+					if(System.currentTimeMillis() -  m_TimeForGetMoment < XConfig.TIME_DELAY_FOR_GET_MOMENT)
+						return;
                     sumOfMoment = event.values[1];
+					m_TimeForGetMoment = System.currentTimeMillis();
                 }
             }
 
