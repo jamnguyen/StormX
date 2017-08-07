@@ -78,7 +78,9 @@ void setup()
 void loop()
 {
    while (true) {
-    unsigned long curr = micros();    
+
+      //Write command
+      unsigned long curr = micros();    
       if(curr - _lastTime >= (100l * 1000l)) {    
       //
       int limit_left = digitalRead(MOTOR_LEFT_LIMIT_PIN);
@@ -102,6 +104,8 @@ void loop()
       //
       _lastTime = curr;
     }
+    
+    //Read command
     char cmd = readCommand();
     switch (cmd) {
       case MESSEAGE_FORWARDFAST:
@@ -188,6 +192,11 @@ void loop()
       default:
         break;
     }
+	  
+	  //Update motor
+  	_left.run();
+  	_middle.run();
+  	_right.run();
   }
 }
 
