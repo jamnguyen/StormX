@@ -4,9 +4,11 @@ public class XConfig
 {
     //System
     public static final boolean     USE_TRANSPOSE_MODE          = true;
-    public static final boolean     isTEAM_STORMX               = true;
+    public static final boolean     isTEAM_STORMX               = false;
     public static final boolean     USE_ROTATION_VECTOR         = false;
-    public static final boolean     USE_GYROSCOPE               = false;
+    public static final boolean     USE_GYROSCOPE               = true;
+    public static final int     DEGREE_DELTA               = 30;
+    public static final int     DEGREE_DELTA_SMALL               = 15;
     public static final boolean     DETECT_COLOR_WITH_CIRCLE    = true;
 
 
@@ -15,11 +17,12 @@ public class XConfig
     public static final int TIME_FOR_BLOW_IN                    = 1500;
     public static final int TIME_FOR_SERVO1_UP                  = 200;
     public static final int TIME_FOR_CAR_BACKWARD               = 600;
+    public static final int TIME_FOR_CATCH_BALL               = 1000;
     public static final int TIME_FOR_ROTATE                     = 200;
     //Spirit
     public static final int SPIRIT_TIME_FRONT                   = 1000;
     public static final int SPIRIT_TIME_THROW                   = 1000;
-    public static final int NUM_OF_BALL = 1;//Số banh cần bắt
+    public static final int SPIRIT_NUM_CATCH_BALL = 5;//Số lần catch ball
 
     public static final double      BALL_AREA_RATIO             = 0.11;
     public static final double      SPIRIT_BALL_AREA_RATIO      = 0.78;

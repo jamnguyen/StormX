@@ -60,10 +60,11 @@ public class Gameplay
 
 	public static boolean ANDROID_STARTED = false;
 	public static boolean ANDROID_INITIALIZED = false;
-	public static int m_BallCount = 0;//đếm số banh hiện tại
+	public static int m_BallCount = 0;//đếm số banh hiện tại//Số lần lấy ball
 	/// Gyroscope
-	public static Gyroscope m_Gyroscope = null;
-
+	private static Gyroscope m_Gyroscope = null;
+	private static double m_MomentInit = 0;
+	private static double  m_MomentOfPhone      = 1600;
 
 	public Gameplay(){
 		m_Bluetooth = null;
@@ -75,14 +76,15 @@ public class Gameplay
 		if(XConfig.USE_ROTATION_VECTOR)
 		{
 			m_VectorDetect = new XVectorDetection(context);
+			orientations = new int[3];
 		}
 		if(XConfig.USE_GYROSCOPE)
 		{
 			m_Gyroscope = new Gyroscope(context);
+			m_MomentInit = m_Gyroscope.getMoment();
 		}
 		//m_VectorInit = null;
 		m_State = STATE_INIT;
-		orientations = new int[3];
         m_BallCount = 0;
     }
 	// public static Gameplay getInstance()
@@ -125,6 +127,10 @@ public class Gameplay
 			orientations[1] = (int)m_VectorDetect.getY();
 			orientations[2] = (int)m_VectorDetect.getZ();
 			Log.d("dung.levan","orientations " + orientations[0] + " - " + orientations[1] + " - " + orientations[2]);
+		}
+		if(XConfig.USE_GYROSCOPE)
+		{
+			m_MomentInit = m_Gyroscope.getMoment();
 		}
 		Switch_State(STATE_FIND_BALL);
 		//Switch_State(STATE_FOLLOW_BALL);
@@ -172,8 +178,13 @@ public class Gameplay
 			Switch_State(STATE_FIND_BALL);
 			break;
 			case COLOR_NEAR:
-			Car_Stop();
-			Switch_State(STATE_CENTER_BALL);
+			Car_Forward();
+			Game_Sleep(XConfig.TIME_FOR_CATCH_BALL);
+			m_BallCount++;
+			if(m_BallCount >= XConfig.SPIRIT_NUM_CATCH_BALL)
+			{
+				Switch_State(STATE_FIND_GOAL);
+			}
 			break;
 			case COLOR_LEFT:
 			Car_TurnLeft();
@@ -186,80 +197,37 @@ public class Gameplay
 			break;
 		}
 	}
-	public void STATE_CENTER_BALL_func()
+	
+	public int getCarDegree()
 	{
-		int tX = m_Detector.getTransposedX((int) m_Detector.getBallCenter().y);
-		if (tX < (m_Detector.getMiddleLine()) && ((m_Detector.getMiddleLine()) - tX) > XConfig.MIDDLE_DELTA) {
-			Car_Rotate_Left();
-		} else if (tX > m_Detector.getMiddleLine() && (tX - m_Detector.getMiddleLine()) > XConfig.MIDDLE_DELTA) {
-			Car_Rotate_Right();
-		} else {
-			Car_Stop();
-			Switch_State(STATE_CATCH_BALL);
-		}
+		double moment = (m_Gyroscope.getMoment() - m_MomentInit)%m_MomentOfPhone;
+		if(moment > m_MomentOfPhone/2)
+			moment = moment - m_MomentOfPhone;
+		else if(moment < -m_MomentOfPhone/2)
+			moment = moment + m_MomentOfPhone;
+		return (int)(moment*360.0/m_MomentOfPhone);
 	}
-	public void STATE_CATCH_BALL_func()
-	{
-		if (XConfig.isTEAM_STORMX) {
-			Motor_Blow_In();
-			Servo1_Down();
-			Game_Sleep(XConfig.TIME_FOR_BLOW_IN);
-			Servo1_Up();
-			Game_Sleep(XConfig.TIME_FOR_SERVO1_UP);
-			Motor_Stop();
-			Car_Stop();
-//			if(m_ColorMessage == COLOR_NEAR)
-//			{
-//				Switch_State(STATE_CLEAN_PATH);
-//			}
-//			else
-			{
-				Switch_State(STATE_FIND_GOAL);
-			}
-		} else
-		{
-            Car_Stop();
-			Servo1_Down();
-			Game_Sleep(XConfig.SPIRIT_TIME_FRONT);
-			Servo1_Up();
-			Game_Sleep(XConfig.SPIRIT_TIME_FRONT);
-            m_BallCount++;
-			//Car_Stop();
-			if (m_BallCount >= XConfig.NUM_OF_BALL ) Switch_State(STATE_FIND_GOAL);
-		}
-	}
-
-	public void STATE_CLEAN_PATH_func()
-	{
-		Car_Rotate_Left();
-		Game_Sleep(XConfig.TIME_FOR_ROTATE);
-		Servo1_Down();
-		Game_Sleep(XConfig.TIME_FOR_SERVO1_UP);
-		Car_Rotate_Right();
-		Game_Sleep(XConfig.TIME_FOR_ROTATE);
-		Switch_State(STATE_FIND_BALL);
-	}
-
 	public void STATE_FIND_GOAL_func()
 	{
-        /*m_BallCount = 0;
-		 Log.d("dung.levan","STATE_GO_GOAL_func orientations " + orientations[0] + " - " + orientations[1] + " - " + orientations[2]);
-         Log.d("dung.levan","STATE_GO_GOAL_func orientations " + m_VectorDetect.getX() + " - " + m_VectorDetect.getY() + " - " + m_VectorDetect.getZ());
-        if (m_VectorDetect.getX() < orientations[0] - ANGLE_DIFF ){ //ANGLE_DIFF: góc lệch, hằng số
-             Log.d("dung.levan","right");
-             Car_Rotate_Right(); // Xoay xe qua phải
-        } else if (m_VectorDetect.getX() > orientations[0] + ANGLE_DIFF) {
-             Log.d("dung.levan","left");
-             Car_Rotate_Left(); // Xoay xe qua trái
-        } 
-		else
-        {
-             Log.d("dung.levan","forward");//Đã xoay đúng hướng chuyển qua STATE_GO_GOAL
-			 Car_Stop();
-			 // Car_Forward(); // NOTE: Xe chạy thẳng về khung, khi đụng vật cản mới chuyển state.
-			 				// Xin đừng chuyển state quá sớm, xe mất khả năng tự chỉnh góc.
-			Switch_State(STATE_GO_GOAL);//qua STATE_GO_GOAL mới chạy thẳng
-        }*/
+		if(XConfig.USE_GYROSCOPE)
+		{
+			int degree = getCarDegree();
+			if (((m_SwitchMessage & (SWITCH_LEFT & SWITCH_RIGHT)) != 0))//Đụng 1 trong 2 công tắc thì chạy chậm
+			{
+				Car_Backward();
+				Game_Sleep(XConfig.TIME_FOR_CAR_BACKWARD);
+			}
+			else//ko đụng cái nào
+			{
+				if(degree > XConfig.DEGREE_DELTA)
+					Car_Rotate_Left();
+				else if(degree < - XConfig.DEGREE_DELTA)
+					Car_Rotate_Right();
+				else
+					Switch_State(STATE_GO_GOAL);
+			}
+			return;
+		}
 		if(m_ColorMessage == COLOR_ZERO)
 		{
 			if((m_SwitchMessage & SWITCH_LEFT) != 0)
@@ -295,6 +263,37 @@ public class Gameplay
 	}
 	public void STATE_GO_GOAL_func()
 	{
+		if(XConfig.USE_GYROSCOPE)
+		{
+			int degree = getCarDegree();
+			if(degree >= XConfig.DEGREE_DELTA || degree <= - XConfig.DEGREE_DELTA)//xe lệch quá nhiều
+			{
+				Switch_State(STATE_FIND_GOAL);
+				return;
+			}
+			else if(degree > - XConfig.DEGREE_DELTA_SMALL && degree < XConfig.DEGREE_DELTA_SMALL )//xe đã đúng hướng
+			{
+				if (((m_SwitchMessage & (SWITCH_LEFT | SWITCH_RIGHT)) != 0))//Đụng cả 2 công tắc thì chuyển state nhả bóng
+				{
+					Switch_State(STATE_RELEASE_BALL);
+					return;
+				}
+				else if (((m_SwitchMessage & (SWITCH_LEFT & SWITCH_RIGHT)) != 0))//Đụng 1 trong 2 công tắc thì chạy chậm
+					Car_Forward_Slow();
+				else//ko đụng công tắc nào
+				{
+					Car_Forward();
+				}
+			}
+			else //xe hơi lệch
+			{
+				if(degree >= XConfig.DEGREE_DELTA_SMALL)//hơi lệch bên phải thì quẹo trái
+					Car_TurnLeft();
+				else //hơi lệch bên trái thì quẹo phải
+					Car_TurnRight();
+			}
+			return;
+		}
 		if (XConfig.USE_ROTATION_VECTOR)
 		{
 			if (m_ColorMessage == COLOR_NEAR) {
@@ -351,31 +350,8 @@ public class Gameplay
 		}
 	}
 	public void STATE_RELEASE_BALL_func() {
+		m_BallCount = 0;
 		Car_Stop();
-        if (XConfig.isTEAM_STORMX) {
-			Servo1_Down();
-			Game_Sleep(XConfig.TIME_FOR_SERVO1_UP);
-            Motor_Blow_Out();
-			Game_Sleep(XConfig.TIME_FOR_BLOW_OUT);
-			Motor_Stop();
-			Servo1_Up();
-			Game_Sleep(XConfig.TIME_FOR_SERVO1_UP);
-			Car_Backward();
-			Game_Sleep(XConfig.TIME_FOR_CAR_BACKWARD);
-            Car_Stop();
-            Switch_State(STATE_FIND_BALL);
-        } else {
-            //Chạy motor nghiêng khung
-
-            //Chạy luôn hạ càng
-
-            Game_Sleep(XConfig.SPIRIT_TIME_FRONT);
-            Car_Backward();
-            Game_Sleep(XConfig.TIME_FOR_CAR_BACKWARD);
-            Car_Stop();
-            Switch_State(STATE_FIND_BALL);
-        }
-
 	}
 	
 	public void Run()
@@ -392,16 +368,16 @@ public class Gameplay
 				STATE_FOLLOW_BALL_func();
 			break;
 			case STATE_CATCH_BALL:
-				STATE_CATCH_BALL_func();
+				//STATE_CATCH_BALL_func();
 			break;
 			case STATE_FIND_GOAL:
 				STATE_FIND_GOAL_func();
 			break;
 			case STATE_CENTER_BALL:
-				STATE_CENTER_BALL_func();
+				//STATE_CENTER_BALL_func();
 				break;
 			case STATE_CLEAN_PATH:
-			STATE_CLEAN_PATH_func();
+			//STATE_CLEAN_PATH_func();
 			break;
 			case STATE_GO_GOAL:
 				STATE_GO_GOAL_func();
@@ -442,6 +418,10 @@ public class Gameplay
 	public void Car_Forward()
 	{
 		sendCommnand(MESSEAGE_FORWARDFAST);
+	}
+	public void Car_Forward_Slow()
+	{
+		sendCommnand(MESSEAGE_FORWARDSLOW);
 	}
 	public void Car_Backward()
 	{
@@ -530,7 +510,7 @@ public class Gameplay
 	
     public String getGyroscopeInfo () {
 		if (m_Gyroscope != null)
-			return "Pos: " + m_Gyroscope.getCurrentDirection() + " | Degree: " + m_Gyroscope.getCurrentDegree();
+			return " Degree: " + getCarDegree();
 		return "Gyroscope";
 	}
 
