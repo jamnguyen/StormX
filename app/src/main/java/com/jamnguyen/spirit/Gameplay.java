@@ -71,8 +71,8 @@ public class Gameplay
 	public static int m_BallCount = 0;//đếm số banh hiện tại//Số lần lấy ball
 	/// Gyroscope
 	private static Gyroscope m_Gyroscope = null;
-	private static double m_MomentInit = 0;
-	private static double  m_MomentOfPhone      = XConfig.GYROSCOPE_MOMENT_DEFAULT;//phone của Tiến
+	private static int m_MomentInit = 0;
+	private static int  m_MomentOfPhone      = XConfig.GYROSCOPE_MOMENT_DEFAULT;//phone của Tiến
 
 	public Gameplay(){
 		m_Bluetooth = null;
@@ -89,7 +89,6 @@ public class Gameplay
 		if(XConfig.USE_GYROSCOPE)
 		{
 			m_Gyroscope = new Gyroscope(context);
-			m_MomentInit = m_Gyroscope.getMoment();
 		}
 		//m_VectorInit = null;
 		m_InitTime = System.currentTimeMillis();
@@ -209,12 +208,12 @@ public class Gameplay
 	
 	public int getCarDegree()
 	{
-		double moment = (m_Gyroscope.getMoment() - m_MomentInit)%m_MomentOfPhone;
+		int moment = (m_Gyroscope.getMoment() - m_MomentInit)%m_MomentOfPhone;
 		if(moment > m_MomentOfPhone/2)
 			moment = moment - m_MomentOfPhone;
 		else if(moment < -m_MomentOfPhone/2)
 			moment = moment + m_MomentOfPhone;
-		return (int)(moment*360.0/m_MomentOfPhone);
+		return (int)((double)moment*360.0/(double)m_MomentOfPhone);
 	}
 	public void STATE_FIND_GOAL_func()
 	{
@@ -553,7 +552,7 @@ public class Gameplay
 	
     public String getGyroscopeInfo () {
 		if (m_Gyroscope != null)
-			return " Degree: " + getCarDegree();
+			return "m_MomentInit: " + m_MomentInit + " currentMoment: " + (int)m_Gyroscope.getMoment() + " Degree: " + getCarDegree();
 		return "Gyroscope";
 	}
 

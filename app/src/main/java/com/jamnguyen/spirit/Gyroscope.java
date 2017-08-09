@@ -14,16 +14,15 @@ import android.hardware.SensorManager;
 public class Gyroscope {
     private SensorManager       sensorManager;
     private SensorEventListener sensorEventListener;
-    private double              sumOfMoment = 0;
+    private int              sumOfMoment = 0;
 
     public Gyroscope (Context context) {
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
-		sumOfMoment = 0;
         sensorEventListener = new SensorEventListener() {
             @Override
             public void onSensorChanged(SensorEvent event) {
                 if (event.sensor.getType()==Sensor.TYPE_GYROSCOPE) {
-                    sumOfMoment += event.values[1];
+                    sumOfMoment += (int)event.values[1];
                 }
             }
 
@@ -36,8 +35,8 @@ public class Gyroscope {
     }
 
     
-	public double getMoment()
+	public int getMoment()
 	{
-		return sumOfMoment;
+		return (int)sumOfMoment;
 	}
 }
