@@ -1,4 +1,4 @@
-package com.jamnguyen.stormx;
+package com.jamnguyen.spirit;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("com.jamnguyen.stormx", appContext.getPackageName());
+        assertEquals("com.jamnguyen.spirit", appContext.getPackageName());
     }
 }

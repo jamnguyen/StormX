@@ -10,6 +10,9 @@ public class XConfig
     public static final double     GYROSCOPE_MOMENT_DEFAULT               = 86;//Phone của Tiến
     public static final int     DEGREE_DELTA               = 30;
     public static final int     DEGREE_DELTA_SMALL               = 15;
+    public static final long     TIME_REMAIN_FOR_BACK_GOAL = 60*1000;
+    public static final long     TIME_ALL_GAME = 5*60*1000;
+    
     
     public static final boolean     DETECT_COLOR_WITH_CIRCLE    = true;
 
@@ -18,13 +21,15 @@ public class XConfig
     public static final int TIME_FOR_BLOW_OUT                   = 1500;
     public static final int TIME_FOR_BLOW_IN                    = 1500;
     public static final int TIME_FOR_SERVO1_UP                  = 200;
-    public static final int TIME_FOR_CAR_BACKWARD               = 600;
-    public static final int TIME_FOR_CATCH_BALL               = 1000;
+    public static final int TIME_FOR_CAR_BACKWARD               = 400;
+    public static final int TIME_FOR_CATCH_BALL               = 500;
     public static final int TIME_FOR_ROTATE                     = 200;
+	public static final int     TIME_FOR_BACKWARD_WHEN_GOAL = 200;
+	public static final int     TIME_FOR_FORWARD_WHEN_GOAL = 250;
     //Spirit
     public static final int SPIRIT_TIME_FRONT                   = 1000;
     public static final int SPIRIT_TIME_THROW                   = 1000;
-    public static final int SPIRIT_NUM_CATCH_BALL = 5;//Số lần catch ball
+    public static final int SPIRIT_NUM_CATCH_BALL = 1;//Số lần catch ball
 
     public static final double      BALL_AREA_RATIO             = 0.11;
     public static final double      SPIRIT_BALL_AREA_RATIO      = 0.78;

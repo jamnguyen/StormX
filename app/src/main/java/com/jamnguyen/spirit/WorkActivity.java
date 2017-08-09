@@ -165,7 +165,7 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
         {
             if(!Gameplay.ANDROID_INITIALIZED)
             {
-                m_Game.STATE_INIT_func();
+                m_Game.Switch_State(Gameplay.STATE_INIT);
             }
             else
             {

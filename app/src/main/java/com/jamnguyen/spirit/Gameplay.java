@@ -26,6 +26,9 @@ public class Gameplay
 	public static final String MESSEAGE_SERVO1_DOWN_RELEASE_BALL              = "M";
 	public static final String MESSEAGE_SERVO2_OPEN              = "I";
 	public static final String MESSEAGE_SERVO12_CLOSE            = "J";
+	public static final String MESSEAGE_Container_Up        =   "O"; //Nâng thùng lên
+	public static final String MESSEAGE_Container_Down      =  "N"; //Hạ thùng xuống
+	public static final String MESSEAGE_MOTOR_MIDDLE_STOP      =  "P"; //thùng stop
 
     public static final int SWITCH_LEFT = 0X10;
     public static final int SWITCH_RIGHT = 0X01;
@@ -57,6 +60,11 @@ public class Gameplay
 	public static final int STATE_CENTER_BALL = 8;
 	
 	public long m_CurrentTime = 0;
+	public long m_InitTime = 0;
+	// public static final int CONTAINER_STATE_STOP = 0;
+	// public static final int CONTAINER_STATE_UP = 1;
+	// public static final int CONTAINER_STATE_DOWN = 2;
+	// public int m_ContainerState = CONTAINER_STATE_STOP; //0:st
 
 	public static boolean ANDROID_STARTED = false;
 	public static boolean ANDROID_INITIALIZED = false;
@@ -84,8 +92,9 @@ public class Gameplay
 			m_MomentInit = m_Gyroscope.getMoment();
 		}
 		//m_VectorInit = null;
+		m_InitTime = System.currentTimeMillis();
+		m_CurrentTime = System.currentTimeMillis();
 		m_State = STATE_INIT;
-        m_BallCount = 0;
     }
 	// public static Gameplay getInstance()
 	// {
@@ -116,8 +125,8 @@ public class Gameplay
 	
 	public void STATE_INIT_func()
 	{
-		m_CurrentTime = 0;
 		m_ColorMessage = 0;
+		m_BallCount = 0;
 		m_Detector.init();
         //Set GOAL vector
         Log.d("dung.levan","STATE_INIT_func");
@@ -154,7 +163,7 @@ public class Gameplay
 	{
 		if(m_ColorMessage == COLOR_MIDDLE || m_ColorMessage == COLOR_NEAR)
 		{
-			Car_Stop();
+			Car_Stop();//Nên Stop
 			Switch_State(STATE_FOLLOW_BALL);
 		}
 		else
@@ -212,7 +221,7 @@ public class Gameplay
 		if(XConfig.USE_GYROSCOPE)
 		{
 			int degree = getCarDegree();
-			if (((m_SwitchMessage & (SWITCH_LEFT & SWITCH_RIGHT)) != 0))//Đụng 1 trong 2 công tắc thì chạy chậm
+			if ((m_SwitchMessage & SWITCH_LEFT) != 0 || (m_SwitchMessage & SWITCH_RIGHT) != 0)//Đụng 1 trong 2 công tắc thì chạy lùi lại
 			{
 				Car_Backward();
 				Game_Sleep(XConfig.TIME_FOR_CAR_BACKWARD);
@@ -228,6 +237,7 @@ public class Gameplay
 			}
 			return;
 		}
+		//Xe Spirit ko cần code ở dưới
 		if(m_ColorMessage == COLOR_ZERO)
 		{
 			if((m_SwitchMessage & SWITCH_LEFT) != 0)
@@ -278,7 +288,7 @@ public class Gameplay
 					Switch_State(STATE_RELEASE_BALL);
 					return;
 				}
-				else if (((m_SwitchMessage & (SWITCH_LEFT & SWITCH_RIGHT)) != 0))//Đụng 1 trong 2 công tắc thì chạy chậm
+				else if ((m_SwitchMessage & SWITCH_LEFT) != 0 || (m_SwitchMessage & SWITCH_RIGHT) != 0)//Đụng 1 trong 2 công tắc thì chạy chậm
 					Car_Forward_Slow();
 				else//ko đụng công tắc nào
 				{
@@ -294,6 +304,7 @@ public class Gameplay
 			}
 			return;
 		}
+		//Xe Spirit ko dùng code ở dưới
 		if (XConfig.USE_ROTATION_VECTOR)
 		{
 			if (m_ColorMessage == COLOR_NEAR) {
@@ -349,13 +360,45 @@ public class Gameplay
 				break;
 		}
 	}
+	public void Container_Up()
+	{
+		sendCommand(MESSEAGE_Container_Up);
+	}
+	public void Container_Down()
+	{
+		sendCommand(MESSEAGE_Container_Down);
+	} 
+	public void Container_Stop()
+	{
+		sendCommand(MESSEAGE_MOTOR_MIDDLE_STOP);
+	} 
 	public void STATE_RELEASE_BALL_func() {
 		m_BallCount = 0;
-		Car_Stop();
+		Car_Backward();
+		Game_Sleep(XConfig.TIME_FOR_BACKWARD_WHEN_GOAL);
+		Container_Up();
+		Car_Forward();
+		Game_Sleep(XConfig.TIME_FOR_FORWARD_WHEN_GOAL);
+		Container_Down();
+		
+		Car_Backward();//lặp lại
+		Game_Sleep(XConfig.TIME_FOR_BACKWARD_WHEN_GOAL);
+		Container_Up();
+		Car_Forward();
+		Game_Sleep(XConfig.TIME_FOR_FORWARD_WHEN_GOAL);
+		Container_Down();
+		
+		Switch_State(STATE_FIND_BALL);
 	}
 	
 	public void Run()
 	{
+		if(XConfig.TIME_ALL_GAME - (System.currentTimeMillis() - m_InitTime) < XConfig.TIME_REMAIN_FOR_BACK_GOAL)
+		{
+			Switch_State(STATE_FIND_GOAL);
+			STATE_FIND_GOAL_func();
+			return;
+		}
 		switch(m_State)
 		{
 			case STATE_INIT:
@@ -387,7 +430,7 @@ public class Gameplay
 			break;
 		}
 	}
-	public void sendCommnand(String command)
+	public void sendCommand(String command)
     {
 		if(!m_Bluetooth.getPrevSentMsg().equals(command))
 		{
@@ -397,59 +440,59 @@ public class Gameplay
 	//Action method of Car
 	public void Car_Stop()
 	{
-		sendCommnand(MESSEAGE_STOP);
+		sendCommand(MESSEAGE_STOP);
 	}
 	public void Car_Rotate_Left()
 	{
-		sendCommnand(MESSEAGE_ROTATELEFT);
+		sendCommand(MESSEAGE_ROTATELEFT);
 	}
 	public void Car_Rotate_Right()
 	{
-		sendCommnand(MESSEAGE_ROTATERIGHT);
+		sendCommand(MESSEAGE_ROTATERIGHT);
 	}
 	public void Car_TurnLeft()
 	{
-		sendCommnand(MESSEAGE_TURNLEFT);
+		sendCommand(MESSEAGE_TURNLEFT);
 	}
 	public void Car_TurnRight()
 	{
-		sendCommnand(MESSEAGE_TURNRIGHT);
+		sendCommand(MESSEAGE_TURNRIGHT);
 	}
 	public void Car_Forward()
 	{
-		sendCommnand(MESSEAGE_FORWARDFAST);
+		sendCommand(MESSEAGE_FORWARDFAST);
 	}
 	public void Car_Forward_Slow()
 	{
-		sendCommnand(MESSEAGE_FORWARDSLOW);
+		sendCommand(MESSEAGE_FORWARDSLOW);
 	}
 	public void Car_Backward()
 	{
-		sendCommnand(MESSEAGE_BACKWARD);
+		sendCommand(MESSEAGE_BACKWARD);
 	}
 	public void Motor_Blow_In()
 	{
-		sendCommnand(MESSEAGE_MOTOR_BLOW_IN);
+		sendCommand(MESSEAGE_MOTOR_BLOW_IN);
 	}
 	public void Motor_Blow_Out()
 	{
-		sendCommnand(MESSEAGE_MOTOR_BLOW_OUT);
+		sendCommand(MESSEAGE_MOTOR_BLOW_OUT);
 	}
 	public void Motor_Stop()
 	{
-		sendCommnand(MESSEAGE_MOTOR_STOP);
+		sendCommand(MESSEAGE_MOTOR_STOP);
 	}
 	public void Servo1_Down()
 	{
-		sendCommnand(MESSEAGE_SERVO1_DOWN);
+		sendCommand(MESSEAGE_SERVO1_DOWN);
 	}
 	public void Servo1_Down_Release_Ball()
 	{
-		sendCommnand(MESSEAGE_SERVO1_DOWN_RELEASE_BALL);
+		sendCommand(MESSEAGE_SERVO1_DOWN_RELEASE_BALL);
 	}
 	public void Servo1_Up()
 	{
-		sendCommnand(MESSEAGE_SERVO1_UP);
+		sendCommand(MESSEAGE_SERVO1_UP);
 	}
 
 	public static void setAndroidStarted(boolean val)

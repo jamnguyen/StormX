@@ -1,4 +1,4 @@
-package com.jamnguyen.stormx;
+package com.jamnguyen.spirit;
 
 import org.junit.Test;
 
