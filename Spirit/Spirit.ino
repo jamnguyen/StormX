@@ -1,17 +1,18 @@
-#define MOTOR_LEFT_INA_PIN          5  // Uno Digital Pin 5
-#define MOTOR_LEFT_IN1_PIN          6  // Uno Digital Pin 6
-#define MOTOR_LEFT_IN2_PIN          7  // Uno Digital Pin 7
-#define MOTOR_LEFT_LIMIT_PIN        11  // Uno Digital Pin 11
+#define MOTOR_LEFT_INA_PIN         6  // Uno Digital Pin 6
+#define MOTOR_LEFT_IN1_PIN         A3  // Uno Digital Pin A3
+#define MOTOR_LEFT_IN2_PIN         A2  // Uno Digital Pin A2
+#define MOTOR_LEFT_LIMIT_PIN        A4  // Uno Digital Pin A4
 
-#define MOTOR_RIGHT_INA_PIN         8  // Uno Digital Pin 8
-#define MOTOR_RIGHT_IN1_PIN         9  // Uno Digital Pin 9
-#define MOTOR_RIGHT_IN2_PIN         10  // Uno Digital Pin 10
-#define MOTOR_RIGHT_LIMIT_PIN       12  // Uno Digital Pin 12
+#define MOTOR_RIGHT_INA_PIN          5  // Uno Digital Pin 5
+#define MOTOR_RIGHT_IN1_PIN          A1  // Uno Digital Pin A1
+#define MOTOR_RIGHT_IN2_PIN          A0  // Uno Digital Pin A0
+#define MOTOR_RIGHT_LIMIT_PIN       A5  // Uno Digital Pin A5
 
-#define MOTOR_MID_PIN_EN            3  // Uno Digital Pin 3
-#define MOTOR_MID_PIN_A1            2  // Uno Digital Pin 2
-#define MOTOR_MID_PIN_A2            4  // Uno Digital Pin 4
-#define MOTOR_MID_LIMIT_PIN         A0  // Uno Digital Pin A0
+#define MOTOR_MID_INA_PIN           9  // Uno Digital Pin 9
+#define MOTOR_MID_PIN_A1            7  // Uno Digital Pin 7
+#define MOTOR_MID_PIN_A2            8  // Uno Digital Pin 8
+#define MOTOR_MID_LIMIT_PIN         12  // Uno Digital Pin 12
+#define MOTOR_MID_LIMIT_PIN2        11  // Uno Digital Pin 11
 
 #define LED_DEBUG                   13
 
@@ -45,25 +46,29 @@
 #define MESSEAGE_LIMIT_RIGHT        '1'
 #define MESSEAGE_LIMIT_BOTH         '3'
 
-#define MESSEAGE_MOTOR_UP           'O'
-#define MESSEAGE_MOTOR_DOWN         'N'
+#define MESSEAGE_MOTOR_MIDDLE_UP    'O'
+#define MESSEAGE_MOTOR_MIDDLE_DOWN  'N'
+#define MESSEAGE_MOTOR_MIDDLE_STOP  'P'
 
 #define MOTOR_SPEED_MIN             100
-#define MOTOR_SPEED_ROTATE_MAX      200
-#define MOTOR_SPEED_ROTATE_MIN      100
-#define MOTOR_SPEED_ROTATE          150
-#define MOTOR_SPEED_MED             200
-#define MOTOR_SPEED_MAX             255
+#define MOTOR_SPEED_ROTATE_MAX      120
+#define MOTOR_SPEED_ROTATE_MIN      80
+#define MOTOR_SPEED_ROTATE          100
+#define MOTOR_SPEED_MED             150
+#define MOTOR_SPEED_MAX             200
+
+#define MOTOR_MIDDLE_SPPED          255
 
 #include "Motor.h"
 
 Motor _left(MOTOR_LEFT_INA_PIN, MOTOR_LEFT_IN1_PIN, MOTOR_LEFT_IN2_PIN);
-Motor _middle(MOTOR_MID_PIN_EN, MOTOR_MID_PIN_A1, MOTOR_MID_PIN_A2);
+Motor _middle(MOTOR_MID_INA_PIN, MOTOR_MID_PIN_A1, MOTOR_MID_PIN_A2);
 Motor _right(MOTOR_RIGHT_INA_PIN, MOTOR_RIGHT_IN1_PIN, MOTOR_RIGHT_IN2_PIN);
 char _last_limit_command;
 unsigned long   _lastTime;
+int motor_middle_state = 0;
 
-#define DEBUG
+//#define DEBUG
 
 void setup()
 {
@@ -74,7 +79,8 @@ void setup()
 
   //LIMIT MIDDLE
   pinMode(MOTOR_MID_LIMIT_PIN, INPUT_PULLUP);
-
+  pinMode(MOTOR_MID_LIMIT_PIN2, INPUT_PULLUP);
+  
   //LIMIT RIGHT
   pinMode(MOTOR_RIGHT_LIMIT_PIN, INPUT_PULLUP);
 
@@ -92,15 +98,15 @@ void loop()
         //
         int limit_left = digitalRead(MOTOR_LEFT_LIMIT_PIN);
         int limit_right = digitalRead(MOTOR_RIGHT_LIMIT_PIN);
-        if (limit_left == LOW && limit_right == LOW) {
+        if (limit_left == HIGH && limit_right == HIGH) {
           writeCommand(MESSEAGE_LIMIT_BOTH);
           digitalWrite(LED_DEBUG, HIGH);
           Log("MESSEAGE_LIMIT_BOTH");
-        } else if (limit_left == LOW) {
+        } else if (limit_left == HIGH) {
           writeCommand(MESSEAGE_LIMIT_LEFT);
           digitalWrite(LED_DEBUG, HIGH);
           Log("MESSEAGE_LIMIT_LEFT");
-        } else if (limit_right == LOW) {
+        } else if (limit_right == HIGH) {
           writeCommand(MESSEAGE_LIMIT_RIGHT);
           digitalWrite(LED_DEBUG, HIGH);
           Log("MESSEAGE_LIMIT_RIGHT");
@@ -154,13 +160,20 @@ void loop()
         _left.setSpeed(0);
         _right.setSpeed(0);
         break;
-      case MESSEAGE_MOTOR_UP:
-        Log("MESSEAGE_MOTOR_UP");
-        _middle.setSpeed(MOTOR_SPEED_MAX);
+      case MESSEAGE_MOTOR_MIDDLE_UP:
+        Log("MESSEAGE_MOTOR_MIDDLE_UP");
+        _middle.setSpeed(-MOTOR_MIDDLE_SPPED);
+        motor_middle_state = 1;
         break;
-      case MESSEAGE_MOTOR_DOWN:
-        Log("MESSEAGE_MOTOR_DOWN");
-        _middle.setSpeed(-MOTOR_SPEED_MAX);
+      case MESSEAGE_MOTOR_MIDDLE_DOWN:
+        Log("MESSEAGE_MOTOR_MIDDLE_DOWN");
+        _middle.setSpeed(MOTOR_MIDDLE_SPPED);
+        motor_middle_state = 2;
+        break;
+      case MESSEAGE_MOTOR_MIDDLE_STOP:
+        Log("MESSEAGE_MOTOR_MIDDE_STOP");
+        _middle.setSpeed(0);
+        motor_middle_state = 0;
         break;
       default:
         break;
@@ -168,8 +181,15 @@ void loop()
 	  
 	  //Update motor
   	_left.run();
-    if(digitalRead(MOTOR_MID_LIMIT_PIN) == HIGH) {
-      _middle.setSpeed(0);
+    int limit_up = digitalRead(MOTOR_MID_LIMIT_PIN);
+    int limit_down = digitalRead(MOTOR_MID_LIMIT_PIN2);
+    if(motor_middle_state != 0)
+    {
+      if(limit_down == HIGH && motor_middle_state == 1 || limit_up == HIGH && motor_middle_state == 2) {
+        Log("MESSEAGE_MOTOR_MIDDLE_STOP");
+        _middle.setSpeed(0);
+        motor_middle_state = 0;
+      }
     }
 	  _middle.run();
   	_right.run();

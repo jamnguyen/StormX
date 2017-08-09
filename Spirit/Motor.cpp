@@ -10,10 +10,10 @@ Motor::Motor(int pwm, int in1, int in2){
 	m_in2 = in2;
   
   if(m_pwm != -1) {
-	  pinMode (m_pwm, OUTPUT);
+	  pinMode(m_pwm, OUTPUT);
   }
-	pinMode (m_in1, OUTPUT);
-	pinMode (m_in2, OUTPUT);
+	pinMode(m_in1, OUTPUT);
+	pinMode(m_in2, OUTPUT);
 
 	stop();
 }
@@ -23,7 +23,7 @@ void Motor::stop(){
 }
 
 void Motor::setSpeed(int speed){
-  m_speed = constrain(m_speed, -255, 255);
+  m_speed = speed;
 }
 
 void Motor::run(){
