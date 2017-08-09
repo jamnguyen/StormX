@@ -44,7 +44,9 @@ public class Gameplay
 	public static final int COLOR_LEFT = 2;//ball ben trai
 	public static final int COLOR_RIGHT = 3;//ball ben phai
 	public static final int COLOR_MIDDLE = 4;//ball ben phai
-	
+	public static final int COLOR_TOO_NEAR = 5;//ball qua gan
+	public static final int COLOR_TOO_FAR = 5;//ball qua xa
+
 	private int m_State = 0;
 	public static final int STATE_INIT = 0;
 	public static final int STATE_FIND_BALL = 1;//xoay tim ball cho den khi nao thay ball se dung
@@ -189,11 +191,24 @@ public class Gameplay
 	public void STATE_CENTER_BALL_func()
 	{
 		int tX = m_Detector.getTransposedX((int) m_Detector.getBallCenter().y);
+		double distance = m_Detector.getBallDistance();
+
 		if (tX < (m_Detector.getMiddleLine()) && ((m_Detector.getMiddleLine()) - tX) > XConfig.MIDDLE_DELTA) {
 			Car_Rotate_Left();
 		} else if (tX > m_Detector.getMiddleLine() && (tX - m_Detector.getMiddleLine()) > XConfig.MIDDLE_DELTA) {
 			Car_Rotate_Right();
-		} else {
+		}
+		//Too close
+		else if (distance < XConfig.BALL_CATCH_DISTANCE - XConfig.BALL_CATCH_DISTANCE_DELTA)
+		{
+			Car_Backward();
+		}
+		//Too far
+//		else if (distance > XConfig.BALL_CATCH_DISTANCE + XConfig.BALL_CATCH_DISTANCE_DELTA)
+//		{
+//			Car_Forward();
+//		}
+		else {
 			Car_Stop();
 			Switch_State(STATE_CATCH_BALL);
 		}
@@ -353,9 +368,8 @@ public class Gameplay
 	public void STATE_RELEASE_BALL_func() {
 		Car_Stop();
         if (XConfig.isTEAM_STORMX) {
+			Motor_Blow_Out();
 			Servo1_Down();
-			Game_Sleep(XConfig.TIME_FOR_SERVO1_UP);
-            Motor_Blow_Out();
 			Game_Sleep(XConfig.TIME_FOR_BLOW_OUT);
 			Motor_Stop();
 			Servo1_Up();
