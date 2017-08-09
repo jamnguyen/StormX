@@ -26,6 +26,7 @@ public class XConfig
     public static final int TIME_FOR_ROTATE                     = 200;
 	public static final int     TIME_FOR_BACKWARD_WHEN_GOAL = 200;
 	public static final int     TIME_FOR_FORWARD_WHEN_GOAL = 250;
+	public static final int     TIME_FOR_ROTATE_IN_CORNER = 200;
     //Spirit
     public static final int SPIRIT_TIME_FRONT                   = 1000;
     public static final int SPIRIT_TIME_THROW                   = 1000;

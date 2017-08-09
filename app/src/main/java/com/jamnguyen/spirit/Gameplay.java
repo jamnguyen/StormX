@@ -58,6 +58,7 @@ public class Gameplay
 	public static final int STATE_RELEASE_BALL = 6;
 	public static final int STATE_CLEAN_PATH = 7;
 	public static final int STATE_CENTER_BALL = 8;
+	public static final int STATE_FOLLOW_BALL_IN_CORNER = 9;
 	
 	public long m_CurrentTime = 0;
 	public long m_InitTime = 0;
@@ -164,6 +165,14 @@ public class Gameplay
 		{
 			Car_Stop();//Nên Stop
 			Switch_State(STATE_FOLLOW_BALL);
+			return;
+		}
+		//nhìn thấy bóng và đụng cả hai công tắc
+		if(m_ColorMessage != COLOR_ZERO && (m_SwitchMessage & (SWITCH_LEFT|SWITCH_RIGHT) != 0))
+		{
+			Car_Stop();//Nên Stop
+			Switch_State(STATE_FOLLOW_BALL_IN_CORNER);
+			return;
 		}
 		else
 		{
@@ -179,6 +188,13 @@ public class Gameplay
 	}
 	public void STATE_FOLLOW_BALL_func()
 	{
+		//nhìn thấy bóng và đụng cả hai công tắc
+		if(m_ColorMessage != COLOR_ZERO && (m_SwitchMessage & (SWITCH_LEFT|SWITCH_RIGHT) != 0))
+		{
+			Car_Stop();//Nên Stop
+			Switch_State(STATE_FOLLOW_BALL_IN_CORNER);
+			return;
+		}
 		switch(m_ColorMessage)
 		{
 			case COLOR_ZERO:// dang follow ball ma bi mat focus 
@@ -205,7 +221,20 @@ public class Gameplay
 			break;
 		}
 	}
-	
+	public void STATE_FOLLOW_BALL_IN_CORNER_func()
+	{
+		Car_Rotate_Right();
+		Game_Sleep(XConfig.TIME_FOR_ROTATE_IN_CORNER);
+		Car_Forward();
+		Game_Sleep(XConfig.TIME_FOR_ROTATE_IN_CORNER);
+		m_BallCount++;
+		if(m_BallCount >= XConfig.SPIRIT_NUM_CATCH_BALL)
+		{
+			Switch_State(STATE_FIND_GOAL);
+			return;
+		}
+		Switch_State(STATE_FIND_BALL);
+	}
 	public int getCarDegree()
 	{
 		int moment = (m_Gyroscope.getMoment() - m_MomentInit)%m_MomentOfPhone;
@@ -408,6 +437,9 @@ public class Gameplay
 			break;
 			case STATE_FOLLOW_BALL:
 				STATE_FOLLOW_BALL_func();
+			break;
+			case STATE_FOLLOW_BALL_IN_CORNER:
+				STATE_FOLLOW_BALL_IN_CORNER_func();
 			break;
 			case STATE_CATCH_BALL:
 				//STATE_CATCH_BALL_func();
