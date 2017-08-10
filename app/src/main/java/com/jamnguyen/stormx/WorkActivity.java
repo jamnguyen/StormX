@@ -172,51 +172,72 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
                 //Show forward range
                 m_XDetector.drawForwardRange(m_Rgba);
 
-                m_XDetector.colorDetect(m_Rgba);
-                m_Game.SetSwitchMessage(Integer.parseInt(m_MsgFromArduino));
-                if (!m_XDetector.isBallOnScreen()) {
-                    m_Game.SetColorMessage(Gameplay.COLOR_ZERO);
+                if(XConfig.DETECT_CIRCLE)
+                {
+                    m_XDetector.circleDectect(m_Rgba);
                 }
                 else
                 {
-//                    double area_ratio = XConfig.BALL_AREA_RATIO;
-//                    if(!m_XDetector.getDetectBall())
-//                        area_ratio = XConfig.GOAL_AREA_RATIO;
-//                    if(!XConfig.isTEAM_STORMX)
-//                        area_ratio = XConfig.SPIRIT_BALL_AREA_RATIO;
-                    double distance = m_XDetector.getBallDistance();
-                    if (distance <= XConfig.BALL_CATCH_DISTANCE && m_Game.getState() != Gameplay.STATE_FIND_GOAL && m_Game.getState() != Gameplay.STATE_GO_GOAL)
+                    m_XDetector.colorDetect(m_Rgba);
+
+                }
+
+                //Get color or Gameplay mode
+                if(XConfig.USE_GAMEPLAY_MODE)
+                {
+                    int n_MsgFromArduino = Integer.parseInt(m_MsgFromArduino);
+                    m_Game.SetSwitchMessage(n_MsgFromArduino);
+
+                    //Ball status message
+                    if(n_MsgFromArduino == Gameplay.MESSAGE_NOBALL)
                     {
-                        Log.d("dung.levan", "m_XDetector.getBallArea() = " + m_XDetector.getBallArea() + " -- " + m_XDetector.getScreenArea() + " -- ball distance = " + distance);
-                        m_Game.SetColorMessage(Gameplay.COLOR_NEAR);
+                        m_Game.setHoldingBallStatus(false);
                     }
                     else
                     {
-                        int tX = m_XDetector.getTransposedX((int) m_XDetector.getBallCenter().y);
-                      //  if (m_Game.isTEAM_STORMX) tX = (int) m_XDetector.getBallCenter().x;
-                        //int tY = m_XDetector.getTransposedY((int) m_XDetector.getBallCenter().x);
-                      //  if (m_Game.isTEAM_STORMX) tY = (int) m_XDetector.getBallCenter().y;
-                        int temp = 0;
-                        if(!m_XDetector.isDetectBall())
+                        m_Game.setHoldingBallStatus(true);
+                    }
+
+                    if (!m_XDetector.isBallOnScreen()) {
+                        m_Game.SetColorMessage(Gameplay.COLOR_ZERO);
+                    } else {
+                        //                    double area_ratio = XConfig.BALL_AREA_RATIO;
+                        //                    if(!m_XDetector.getDetectBall())
+                        //                        area_ratio = XConfig.GOAL_AREA_RATIO;
+                        //                    if(!XConfig.isTEAM_STORMX)
+                        //                        area_ratio = XConfig.SPIRIT_BALL_AREA_RATIO;
+                        double distance = m_XDetector.getBallDistance();
+                        if (distance <= XConfig.BALL_CATCH_DISTANCE && m_Game.getState() != Gameplay.STATE_FIND_GOAL && m_Game.getState() != Gameplay.STATE_GO_GOAL)
                         {
-                            tX += XConfig.MIDDLE_OFFSET;
+                            m_Game.SetColorMessage(Gameplay.COLOR_NEAR);
                         }
-                      /*  if (m_Game.isTEAM_STORMX)
+                        else
                         {
-                            int radius = (int)Math.sqrt(m_XDetector.getBallArea()/Math.PI);//lây bán kình hình tròn
-                            temp = radius;// Chỉnh tâm về bên phải
-                        }*/
-                        //Calibrating direction
-                        if (tX < (m_XDetector.getMiddleLine() + temp) && ((m_XDetector.getMiddleLine() + temp) - tX) > (XConfig.MIDDLE_DELTA)) {
-                            m_Game.SetColorMessage(Gameplay.COLOR_LEFT);
-                        } else if (tX > m_XDetector.getMiddleLine() && (tX - m_XDetector.getMiddleLine()) > (XConfig.MIDDLE_DELTA)) {
-                            m_Game.SetColorMessage(Gameplay.COLOR_RIGHT);
-                        } else {
-                            m_Game.SetColorMessage(Gameplay.COLOR_MIDDLE);
+                            int tX = m_XDetector.getTransposedX((int) m_XDetector.getBallCenter().y);
+                            //  if (m_Game.isTEAM_STORMX) tX = (int) m_XDetector.getBallCenter().x;
+                            //int tY = m_XDetector.getTransposedY((int) m_XDetector.getBallCenter().x);
+                            //  if (m_Game.isTEAM_STORMX) tY = (int) m_XDetector.getBallCenter().y;
+                            int temp = 0;
+                            if (!m_XDetector.isDetectBall()) {
+                                tX += XConfig.MIDDLE_OFFSET;
+                            }
+                          /*  if (m_Game.isTEAM_STORMX)
+                            {
+                                int radius = (int)Math.sqrt(m_XDetector.getBallArea()/Math.PI);//lây bán kình hình tròn
+                                temp = radius;// Chỉnh tâm về bên phải
+                            }*/
+                            //Calibrating direction
+                            if (tX < (m_XDetector.getMiddleLine() + temp) && ((m_XDetector.getMiddleLine() + temp) - tX) > (XConfig.MIDDLE_DELTA)) {
+                                m_Game.SetColorMessage(Gameplay.COLOR_LEFT);
+                            } else if (tX > m_XDetector.getMiddleLine() && (tX - m_XDetector.getMiddleLine()) > (XConfig.MIDDLE_DELTA)) {
+                                m_Game.SetColorMessage(Gameplay.COLOR_RIGHT);
+                            } else {
+                                m_Game.SetColorMessage(Gameplay.COLOR_MIDDLE);
+                            }
                         }
                     }
+                    m_Game.Run();
                 }
-                m_Game.Run();
             }
         }
         else
@@ -224,19 +245,15 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
             m_XBluetooth.send("S");
         }
 
-        /* if(m_MsgFromArduino.equals("P"))
-        {
-            //After pushing ball
-            m_XCommander.setBallHolding(false);
-        } */
-
         //Showing statuses
         Utils.drawString(m_Rgba, "Arduino: " + m_MsgFromArduino, 20, 40);
         Utils.drawString(m_Rgba, "Command: " + m_XBluetooth.getPrevSentMsg(), 20, 70);
 //        Utils.drawString(m_Rgba, "Is detecting ball: " + m_XDetector.getDetectBall(), 20, 100);
         Utils.drawString(m_Rgba, "Ball distance: " + m_XDetector.getBallDistance(), 20, 100);
 //        Utils.drawString(m_Rgba, "State: " + m_Game.getState() + " -- TEAM: " + (XConfig.isTEAM_STORMX ? "StormX" : "Spirit"), 20, 130);
-        Utils.drawString(m_Rgba, "Color state: " + m_Game.getColorMessage(), 20, 130);
+//        Utils.drawString(m_Rgba, "Color state: " + m_Game.getColorMessage(), 20, 130);
+        Utils.drawString(m_Rgba, "Radius: " + m_XDetector.getBallRadius(), 20, 130);
+//        Utils.drawString(m_Rgba, "Color area: " + m_XDetector.getBallArea(), 20, 160);
         // Utils.drawString(m_Rgba, "x_org: " + m_Game.getOrientations()[0] + " -- y_org: " +
         //        m_Game.getOrientations()[1] + " -- z_org: " + m_Game.getOrientations()[2], 20, 130);//dung.levan thêm để lấy thông tin
 //        Utils.drawString(m_Rgba, "x: " + (int)m_Game.getX() + " -- y: " + (int)m_Game.getY() + " -- z: " + (int)m_Game.getZ(), 20, 160); //dung.levan thêm để lấy thông tin

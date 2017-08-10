@@ -26,9 +26,12 @@ public class Gameplay
 	public static final String MESSEAGE_SERVO1_DOWN_RELEASE_BALL              = "M";
 	public static final String MESSEAGE_SERVO2_OPEN              = "I";
 	public static final String MESSEAGE_SERVO12_CLOSE            = "J";
+	public static final String MESSAGE_ASK_BALL_STATUS			= "Z";
 
+	public static final int MESSAGE_HAVEBALL = 4;
+	public static final int MESSAGE_NOBALL = 5;
     public static final int SWITCH_LEFT = 0X10;
-    public static final int SWITCH_RIGHT = 0X01;
+	public static final int SWITCH_RIGHT = 0X01;
     public static final int NUM_BALL = 1;
 	public static final int ANGLE_DIFF = 6;
 	public static final int ANGLE_DIFF_SMALL = 4;
@@ -59,6 +62,7 @@ public class Gameplay
 	public static final int STATE_CENTER_BALL = 8;
 	
 	public long m_CurrentTime = 0;
+	public boolean m_isHoldingBall = false;
 
 	public static boolean ANDROID_STARTED = false;
 	public static boolean ANDROID_INITIALIZED = false;
@@ -102,6 +106,15 @@ public class Gameplay
 		if(state == STATE_FIND_GOAL || state == STATE_GO_GOAL)
 		{
 			m_Detector.setDetectBall(false);
+
+            //Check if catching ball successful
+            Car_Stop();
+            askHoldingBallStatus();
+            Game_Sleep(XConfig.TIME_FOR_ASK);
+            if(!m_isHoldingBall)
+            {
+                Switch_State(STATE_FOLLOW_BALL);
+            }
 		}
 		m_State = state;
 	}
@@ -175,7 +188,10 @@ public class Gameplay
 			break;
 			case COLOR_NEAR:
 			Car_Stop();
-			Switch_State(STATE_CENTER_BALL);
+            if(m_Detector.getMissRatio() < XConfig.MISS_DETECT_RATIO)
+                Switch_State(STATE_CLEAN_PATH);
+            else
+                Switch_State(STATE_CENTER_BALL);
 			break;
 			case COLOR_LEFT:
 			Car_TurnLeft();
@@ -188,6 +204,28 @@ public class Gameplay
 			break;
 		}
 	}
+    public void STATE_CLEAN_PATH_func()
+    {
+		Motor_Blow_In();
+		Servo1_Down();
+		Game_Sleep(XConfig.TIME_FOR_SERVO1_UP);
+		Car_Forward();
+		Game_Sleep(XConfig.TIME_FOR_CLEAN_LONG);
+//		Car_Backward();
+//		Game_Sleep(XConfig.TIME_FOR_SERVO1_UP);
+		Motor_Stop();
+		Servo1_Up();
+		Game_Sleep(XConfig.TIME_FOR_SERVO1_UP);
+		Car_Stop();
+
+		askHoldingBallStatus();
+		Game_Sleep(XConfig.TIME_FOR_ASK);
+
+		if(m_isHoldingBall)
+			Switch_State(STATE_FIND_GOAL);
+		else
+        	Switch_State(STATE_FOLLOW_BALL);
+    }
 	public void STATE_CENTER_BALL_func()
 	{
 		int tX = m_Detector.getTransposedX((int) m_Detector.getBallCenter().y);
@@ -218,19 +256,17 @@ public class Gameplay
 		if (XConfig.isTEAM_STORMX) {
 			Motor_Blow_In();
 			Servo1_Down();
-			Game_Sleep(XConfig.TIME_FOR_BLOW_IN);
-			Servo1_Up();
 			Game_Sleep(XConfig.TIME_FOR_SERVO1_UP);
+			Car_Forward();
+			Game_Sleep(XConfig.TIME_FOR_CLEAN_SHORT);
+			Car_Backward();
+			Game_Sleep(XConfig.TIME_FOR_SERVO1_UP);
+			Servo1_Up();
 			Motor_Stop();
+			Game_Sleep(XConfig.TIME_FOR_SERVO1_UP);
 			Car_Stop();
-//			if(m_ColorMessage == COLOR_NEAR)
-//			{
-//				Switch_State(STATE_CLEAN_PATH);
-//			}
-//			else
-			{
-				Switch_State(STATE_FIND_GOAL);
-			}
+
+            Switch_State(STATE_FIND_GOAL);
 		} else
 		{
             Car_Stop();
@@ -242,17 +278,6 @@ public class Gameplay
 			//Car_Stop();
 			if (m_BallCount >= XConfig.NUM_OF_BALL ) Switch_State(STATE_FIND_GOAL);
 		}
-	}
-
-	public void STATE_CLEAN_PATH_func()
-	{
-		Car_Rotate_Left();
-		Game_Sleep(XConfig.TIME_FOR_ROTATE);
-		Servo1_Down();
-		Game_Sleep(XConfig.TIME_FOR_SERVO1_UP);
-		Car_Rotate_Right();
-		Game_Sleep(XConfig.TIME_FOR_ROTATE);
-		Switch_State(STATE_FIND_BALL);
 	}
 
 	public void STATE_FIND_GOAL_func()
@@ -275,6 +300,7 @@ public class Gameplay
 			 				// Xin đừng chuyển state quá sớm, xe mất khả năng tự chỉnh góc.
 			Switch_State(STATE_GO_GOAL);//qua STATE_GO_GOAL mới chạy thẳng
         }*/
+
 		if(m_ColorMessage == COLOR_ZERO)
 		{
 			if((m_SwitchMessage & SWITCH_LEFT) != 0)
@@ -295,10 +321,10 @@ public class Gameplay
 					Switch_State(STATE_GO_GOAL);
 					break;
 				case COLOR_LEFT:
-					Car_Rotate_Left();
+					Car_TurnLeft();
 					break;
 				case COLOR_RIGHT:
-					Car_Rotate_Right();
+					Car_TurnRight();
 					break;
 				case COLOR_MIDDLE:
 					Switch_State(STATE_GO_GOAL);
@@ -310,6 +336,11 @@ public class Gameplay
 	}
 	public void STATE_GO_GOAL_func()
 	{
+		if (((m_SwitchMessage & (SWITCH_LEFT | SWITCH_RIGHT)) != 0))
+		{
+			Switch_State(STATE_RELEASE_BALL);
+		}
+
 		if (XConfig.USE_ROTATION_VECTOR)
 		{
 			if (m_ColorMessage == COLOR_NEAR) {
@@ -338,31 +369,39 @@ public class Gameplay
 			}
 		}
 
-		if (((m_SwitchMessage & (SWITCH_LEFT | SWITCH_RIGHT)) != 0))
-		{
-			Switch_State(STATE_RELEASE_BALL);
-		}
-
 //		Car_Forward();
 
-		switch (m_ColorMessage) {
-			case COLOR_ZERO:// dang follow ball ma bi mat focus
-				Car_Stop();
-				Switch_State(STATE_FIND_GOAL);
-				break;
-			case COLOR_NEAR:
+//        if(m_Detector.getBallRadius() < XConfig.GOAL_THRESHOLD_RADIUS)
+//        {
+//            Car_Backward();
+//            Game_Sleep(XConfig.TIME_FOR_CLEAN_SHORT);
+//        }
+
+		if(m_Detector.getBallRadius() >= XConfig.GOAL_THRESHOLD_RADIUS)
+		{
+			Car_Forward();
+		}
+		else
+		{
+			switch (m_ColorMessage) {
+				case COLOR_ZERO:// dang follow ball ma bi mat focus
+					Car_Stop();
+					Switch_State(STATE_FIND_GOAL);
+					break;
+				case COLOR_NEAR:
 //				Car_Stop();
 //				Switch_State(STATE_RELEASE_BALL);
-				break;
-			case COLOR_LEFT:
-				Car_Rotate_Left();
-				break;
-			case COLOR_RIGHT:
-				Car_Rotate_Right();
-				break;
-			case COLOR_MIDDLE:
-				Car_Forward();
-				break;
+					break;
+				case COLOR_LEFT:
+					Car_Rotate_Left();
+					break;
+				case COLOR_RIGHT:
+					Car_Rotate_Right();
+					break;
+				case COLOR_MIDDLE:
+					Car_Forward();
+					break;
+			}
 		}
 	}
 	public void STATE_RELEASE_BALL_func() {
@@ -494,6 +533,16 @@ public class Gameplay
 	public static void setAndroidInitialized(boolean val)
 	{
 		ANDROID_INITIALIZED = val;
+	}
+
+	public void askHoldingBallStatus()
+	{
+		sendCommnand(MESSAGE_ASK_BALL_STATUS);
+	}
+
+	public void setHoldingBallStatus(boolean val)
+	{
+		m_isHoldingBall = val;
 	}
 
     public float getX() {

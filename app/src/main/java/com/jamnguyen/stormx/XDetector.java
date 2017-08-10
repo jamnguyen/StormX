@@ -45,7 +45,7 @@ public class XDetector
     private boolean                 m_isBallOnScreen = false;
     private int                     m_ballX = -1;
     private int                     m_ballY = -1;
-    private double                  m_ballArea;
+    private double                  m_colorArea;
     private Point                   m_ballCenter;
     private int                     m_ballRadius;
     private double                  m_screenArea;
@@ -121,15 +121,15 @@ public class XDetector
     public void init()
     {
         m_isDetectBall = true;
-        m_ballArea = 0;
+        m_colorArea = 0;
     }
 
     //Circle detecting------------------------------------------------------------------------------
-    public Mat circleDectect(CameraBridgeViewBase.CvCameraViewFrame inputFrame)
+    public Mat circleDectect(Mat rgbaInput)
     {
         //To grayscale
-        Mat grayInput = inputFrame.gray();
-        Mat rgbaInput = inputFrame.rgba();
+        Mat grayInput = new Mat();
+        Imgproc.cvtColor(rgbaInput, grayInput, Imgproc.COLOR_RGB2GRAY);
 
         //Mat contains detected circles
         //Number of column is the amount
@@ -145,7 +145,8 @@ public class XDetector
         //0: Minimum radio to be detected. If unknown, put zero as default.
         //0: Maximum radius to be detected. If unknown, put zero as default
 //        Imgproc.HoughCircles(grayInput, circles, Imgproc.CV_HOUGH_GRADIENT, 2, grayInput.rows()/8, 200, 100, 0, 0);
-        Imgproc.HoughCircles(grayInput, circles, Imgproc.CV_HOUGH_GRADIENT, 2, grayInput.rows()/8, 99, 39, 10, 400);
+//        Imgproc.HoughCircles(grayInput, circles, Imgproc.CV_HOUGH_GRADIENT, 2, grayInput.rows()/8, 99, 39, 0, 0);
+        Imgproc.HoughCircles(grayInput, circles, Imgproc.CV_HOUGH_GRADIENT, 2, grayInput.rows()/8, 150, 50, 0, 0);
 
         if (circles.cols() > 0)
         {
@@ -218,7 +219,7 @@ public class XDetector
             m_isBallOnScreen = true;
             m_ballContour = contours.get(indexOfBiggestContour);
 
-            if(XConfig.DETECT_COLOR_WITH_CIRCLE && m_isDetectBall)
+            if(XConfig.DETECT_COLOR_WITH_CIRCLE)
             {
                 /// Hough circle
                 MatOfPoint2f current_contour = new MatOfPoint2f(m_ballContour.toArray());
@@ -296,41 +297,42 @@ public class XDetector
         Mat touchedRegionHsv = new Mat();
         Imgproc.cvtColor(touchedRegionRgba, touchedRegionHsv, Imgproc.COLOR_RGB2HSV_FULL);
 
-        //Get Color---------------------------------------------------------------------------------
-//        m_BlobColorHsv = Core.sumElems(touchedRegionHsv);
-//        int pointCount = touchedRect.width*touchedRect.height;
-//        for (int i = 0; i < m_BlobColorHsv.val.length; i++)
-//            m_BlobColorHsv.val[i] /= pointCount;
-////
-//////        m_BlobColorRgba = converScalarHsv2Rgba(m_BlobColorHsv);
-////
-//        Utils.toastLong("Touched HSV color: (" + m_BlobColorHsv.val[0] + ", " + m_BlobColorHsv.val[1] +
-//                ", " + m_BlobColorHsv.val[2] + ", " + m_BlobColorHsv.val[3] + ")", m_appContext);
-//        m_BlobDetectorPink.setHsvColor(m_BlobColorHsv);
-//
-//        if(!Gameplay.ANDROID_STARTED)
-//        {
-//            Gameplay.setAndroidStarted(true);
-//            Gameplay.setAndroidInitialized(false);
-//        }
-//        else
-//        {
-//            Gameplay.setAndroidStarted(false);
-//        }
-
-        //------------------------------------------------------------------------------------------
-
-
-        if(!Gameplay.ANDROID_STARTED)
+        if(!XConfig.USE_GAMEPLAY_MODE)
         {
-            Utils.toastShort("ANDROID STARTED", m_appContext);
-            Gameplay.setAndroidStarted(true);
-            Gameplay.setAndroidInitialized(false);
+            //Get Color-----------------------------------------------------------------------------
+            m_BlobColorHsv = Core.sumElems(touchedRegionHsv);
+            int pointCount = touchedRect.width * touchedRect.height;
+            for (int i = 0; i < m_BlobColorHsv.val.length; i++)
+                m_BlobColorHsv.val[i] /= pointCount;
+
+            Utils.toastLong("Touched HSV color: (" + m_BlobColorHsv.val[0] + ", " + m_BlobColorHsv.val[1] +
+                    ", " + m_BlobColorHsv.val[2] + ", " + m_BlobColorHsv.val[3] + ")", m_appContext);
+            m_BlobDetectorPink.setHsvColor(m_BlobColorHsv);
+
+            if (!Gameplay.ANDROID_STARTED)
+            {
+                Gameplay.setAndroidStarted(true);
+                Gameplay.setAndroidInitialized(false);
+            }
+            else
+            {
+                Gameplay.setAndroidStarted(false);
+            }
+            //--------------------------------------------------------------------------------------
         }
         else
         {
-            Utils.toastShort("ANDROID STOP", m_appContext);
-            Gameplay.setAndroidStarted(false);
+            if (!Gameplay.ANDROID_STARTED)
+            {
+                Utils.toastShort("ANDROID STARTED", m_appContext);
+                Gameplay.setAndroidStarted(true);
+                Gameplay.setAndroidInitialized(false);
+            }
+            else
+            {
+                Utils.toastShort("ANDROID STOP", m_appContext);
+                Gameplay.setAndroidStarted(false);
+            }
         }
 
         touchedRegionRgba.release();
@@ -363,11 +365,11 @@ public class XDetector
 
         if(index > -1)
         {
-            m_ballArea = area;
+            m_colorArea = area;
         }
         else
         {
-            m_ballArea = 0;
+            m_colorArea = 0;
         }
         return index;
     }
@@ -397,9 +399,19 @@ public class XDetector
         return m_middleLine;
     }
 
+    public double getColorArea()
+    {
+        return m_colorArea;
+    }
+
     public double getBallArea()
     {
-        return m_ballArea;
+        return m_ballRadius * m_ballRadius * 3.14;
+    }
+
+    public double getMissRatio()
+    {
+        return getColorArea()/getBallArea();
     }
 
     public int getBallRadius()
