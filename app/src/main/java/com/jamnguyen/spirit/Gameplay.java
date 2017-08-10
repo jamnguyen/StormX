@@ -59,6 +59,9 @@ public class Gameplay
 	public static final int STATE_CLEAN_PATH = 7;
 	public static final int STATE_CENTER_BALL = 8;
 	public static final int STATE_FOLLOW_BALL_IN_CORNER = 9;
+	public static final int STATE_FIND_BALL_LEFT = 10;
+	public static final int STATE_FIND_BALL_RIGHT = 11;
+	public static final int STATE_TEST = 12;//muốn test gì thì test vào đây
 	
 	public long m_CurrentTime = 0;
 	public long m_InitTime = 0;
@@ -141,9 +144,18 @@ public class Gameplay
 		{
 			m_MomentInit = m_Gyroscope.getMoment();
 		}
-		Switch_State(STATE_FIND_BALL);
-		//Switch_State(STATE_FOLLOW_BALL);
-//		Switch_State(STATE_FIND_GOAL); // Đang test về khung lưới
+		switch(m_Detector.getTouchDirection())
+		{
+			case XDetector.TOUCH_CENTER:
+				Switch_State(STATE_FIND_BALL);
+			break;
+			case XDetector.TOUCH_LEFT:
+				Switch_State(STATE_FIND_BALL_LEFT);
+			break;
+			case XDetector.TOUCH_RIGHT:
+				Switch_State(STATE_FIND_BALL_RIGHT);
+			break;
+		}
 		ANDROID_INITIALIZED = true;
 	}
 	public void Game_Sleep(long time)
@@ -168,7 +180,7 @@ public class Gameplay
 			return;
 		}
 		//nhìn thấy bóng và đụng cả hai công tắc
-		if(m_ColorMessage != COLOR_ZERO && (m_SwitchMessage & (SWITCH_LEFT|SWITCH_RIGHT) != 0))
+		if(m_ColorMessage != COLOR_ZERO && (m_SwitchMessage & (SWITCH_LEFT|SWITCH_RIGHT)) != 0)
 		{
 			Car_Stop();//Nên Stop
 			Switch_State(STATE_FOLLOW_BALL_IN_CORNER);
@@ -189,7 +201,7 @@ public class Gameplay
 	public void STATE_FOLLOW_BALL_func()
 	{
 		//nhìn thấy bóng và đụng cả hai công tắc
-		if(m_ColorMessage != COLOR_ZERO && (m_SwitchMessage & (SWITCH_LEFT|SWITCH_RIGHT) != 0))
+		if(m_ColorMessage != COLOR_ZERO && (m_SwitchMessage & (SWITCH_LEFT|SWITCH_RIGHT)) != 0)
 		{
 			Car_Stop();//Nên Stop
 			Switch_State(STATE_FOLLOW_BALL_IN_CORNER);
@@ -265,7 +277,7 @@ public class Gameplay
 			}
 			return;
 		}
-		//Xe Spirit ko cần code ở dưới
+		//trường hợp ko dùng XConfig.USE_GYROSCOPE
 		if(m_ColorMessage == COLOR_ZERO)
 		{
 			if((m_SwitchMessage & SWITCH_LEFT) != 0)
@@ -282,6 +294,7 @@ public class Gameplay
 			switch (m_ColorMessage)
 			{
 				case COLOR_NEAR:
+				case COLOR_MIDDLE:
 					Car_Stop();
 					Switch_State(STATE_GO_GOAL);
 					break;
@@ -291,12 +304,7 @@ public class Gameplay
 				case COLOR_RIGHT:
 					Car_Rotate_Right();
 					break;
-				case COLOR_MIDDLE:
-					Switch_State(STATE_GO_GOAL);
-					break;
 			}
-			Car_Stop();
-			Switch_State(STATE_GO_GOAL);
 		}
 	}
 	public void STATE_GO_GOAL_func()
@@ -313,6 +321,7 @@ public class Gameplay
 			{
 				if (((m_SwitchMessage & (SWITCH_LEFT | SWITCH_RIGHT)) != 0))//Đụng cả 2 công tắc thì chuyển state nhả bóng
 				{
+					Car_Stop();
 					Switch_State(STATE_RELEASE_BALL);
 					return;
 				}
@@ -332,7 +341,7 @@ public class Gameplay
 			}
 			return;
 		}
-		//Xe Spirit ko dùng code ở dưới
+		//trường hợp ko dùng XConfig.USE_GYROSCOPE
 		if (XConfig.USE_ROTATION_VECTOR)
 		{
 			if (m_ColorMessage == COLOR_NEAR) {
@@ -361,12 +370,13 @@ public class Gameplay
 			}
 		}
 
-		if (((m_SwitchMessage & (SWITCH_LEFT | SWITCH_RIGHT)) != 0))
+		if (((m_SwitchMessage & (SWITCH_LEFT | SWITCH_RIGHT)) != 0))//đụng cả hai công tắc
 		{
+			Car_Stop();
 			Switch_State(STATE_RELEASE_BALL);
+			return;
 		}
 
-//		Car_Forward();
 
 		switch (m_ColorMessage) {
 			case COLOR_ZERO:// dang follow ball ma bi mat focus
@@ -374,8 +384,8 @@ public class Gameplay
 				Switch_State(STATE_FIND_GOAL);
 				break;
 			case COLOR_NEAR:
-//				Car_Stop();
-//				Switch_State(STATE_RELEASE_BALL);
+				Car_Stop();
+				Switch_State(STATE_RELEASE_BALL);
 				break;
 			case COLOR_LEFT:
 				Car_Rotate_Left();
@@ -400,28 +410,76 @@ public class Gameplay
 	{
 		sendCommand(MESSEAGE_MOTOR_MIDDLE_STOP);
 	} 
+	public void STATE_FIND_BALL_LEFT_func()
+	{
+		Car_Rotate_Left();
+		Game_Sleep(100);
+		Car_Forward();
+		Game_Sleep(100);
+		Car_Rotate_Right();
+		Game_Sleep(100);
+		// 
+		while(true)//ko đụng cả 2 công tắc hoặc chỉ đụng 1 cái
+		{
+			if((m_SwitchMessage & (SWITCH_LEFT | SWITCH_RIGHT)) != 0)//Đụng cả hai công tắc
+			{
+				Car_Stop();
+				Switch_State(STATE_RELEASE_BALL);
+				return;
+			}
+			if((m_SwitchMessage & SWITCH_LEFT) != 0)//Đụng left
+				Car_TurnRight();
+			else if((m_SwitchMessage & SWITCH_RIGHT) != 0)//Đụng Right
+				Car_TurnLeft();
+			else
+				Car_Forward();
+		}
+	}
+	public void STATE_FIND_BALL_RIGHT_func()
+	{
+		Car_Rotate_Right();
+		Game_Sleep(100);
+		Car_Forward();
+		Game_Sleep(100);
+		Car_Rotate_Left();
+		Game_Sleep(100);
+		// 
+		while(true)
+		{
+			if((m_SwitchMessage & (SWITCH_LEFT | SWITCH_RIGHT)) != 0)//Đụng cả hai công tắc
+			{
+				Car_Stop();
+				Switch_State(STATE_RELEASE_BALL);
+				return;
+			}
+			if((m_SwitchMessage & SWITCH_LEFT) != 0)//Đụng left
+				Car_TurnRight();
+			else if((m_SwitchMessage & SWITCH_RIGHT) != 0)//Đụng Right
+				Car_TurnLeft();
+			else
+				Car_Forward();
+		}
+	}
+	public void STATE_TEST_func()
+	{
+		
+	}
+			
 	public void STATE_RELEASE_BALL_func() {
 		m_BallCount = 0;
-		Car_Backward();
-		Game_Sleep(XConfig.TIME_FOR_BACKWARD_WHEN_GOAL);
+		// Car_Backward();
+		// Game_Sleep(XConfig.TIME_FOR_BACKWARD_WHEN_GOAL);
 		Container_Up();
-		Car_Forward();
-		Game_Sleep(XConfig.TIME_FOR_FORWARD_WHEN_GOAL);
+		// Car_Forward();
+		// Game_Sleep(XConfig.TIME_FOR_FORWARD_WHEN_GOAL);
+		Game_Sleep(XConfig.TIME_FOR_RELEASE_BALL);
 		Container_Down();
-		
-		Car_Backward();//lặp lại
-		Game_Sleep(XConfig.TIME_FOR_BACKWARD_WHEN_GOAL);
-		Container_Up();
-		Car_Forward();
-		Game_Sleep(XConfig.TIME_FOR_FORWARD_WHEN_GOAL);
-		Container_Down();
-		
 		Switch_State(STATE_FIND_BALL);
 	}
 	
 	public void Run()
 	{
-		if(XConfig.TIME_ALL_GAME - (System.currentTimeMillis() - m_InitTime) < XConfig.TIME_REMAIN_FOR_BACK_GOAL)
+		if((XConfig.SPIRIT_NUM_CATCH_BALL > 1)&&(XConfig.TIME_ALL_GAME - (System.currentTimeMillis() - m_InitTime) < XConfig.TIME_REMAIN_FOR_BACK_GOAL))//trường hợp muốn lấy banh nhiều lần
 		{
 			Switch_State(STATE_FIND_GOAL);
 			STATE_FIND_GOAL_func();
@@ -458,6 +516,15 @@ public class Gameplay
 			break;
 			case STATE_RELEASE_BALL:
 				STATE_RELEASE_BALL_func();
+			break;
+			case STATE_FIND_BALL_LEFT:
+				STATE_FIND_BALL_LEFT_func();
+			break;
+			case STATE_FIND_BALL_RIGHT:
+				STATE_FIND_BALL_RIGHT_func();
+			break;
+			case STATE_TEST:
+				STATE_TEST_func();
 			break;
 		}
 	}

@@ -56,7 +56,15 @@ public class XDetector
     private Point                   m_midUpRightPoint;
     private Point                   m_midDownRightPoint;
     private boolean                 m_isDetectBall;
-
+    private int                 m_touchDirection;
+    public  int   getTouchDirection()
+	{
+		return m_touchDirection;
+	}
+	public static final int TOUCH_CENTER = 0;
+	public static final int TOUCH_LEFT = 1;
+	public static final int TOUCH_RIGHT = 2;
+	public static final int TOUCH_DELTA                = 60;
 
 
     public void 	setDetectBall(boolean value)
@@ -324,6 +332,14 @@ public class XDetector
         if(!Gameplay.ANDROID_STARTED)
         {
             Utils.toastShort("ANDROID STARTED", m_appContext);
+			int tX = getTransposedX((int) event.getY());
+			int tY = getTransposedX((int) event.getX());
+			if(tX > (frameWidth + TOUCH_DELTA) /2 )
+				m_touchDirection = TOUCH_LEFT;
+			else if(tX < (frameWidth - TOUCH_DELTA) /2 )
+				m_touchDirection = TOUCH_RIGHT;
+			else
+				m_touchDirection = TOUCH_CENTER;
             Gameplay.setAndroidStarted(true);
             Gameplay.setAndroidInitialized(false);
         }
