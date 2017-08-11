@@ -133,6 +133,7 @@ public class Gameplay
 		m_Detector.init();
         //Set GOAL vector
         Log.d("dung.levan","STATE_INIT_func");
+		ANDROID_INITIALIZED = true;
 		if(XConfig.USE_ROTATION_VECTOR)
 		{
 			orientations[0] = (int) m_VectorDetect.getX();
@@ -156,7 +157,7 @@ public class Gameplay
 				Switch_State(STATE_FIND_BALL_RIGHT);
 			break;
 		}
-		ANDROID_INITIALIZED = true;
+		
 	}
 	public void Game_Sleep(long time)
     {
