@@ -4,7 +4,7 @@ public class XConfig
 {
     //System
     public static final boolean     USE_TRANSPOSE_MODE          = true;
-    public static final boolean     USE_GAMEPLAY_MODE           = false;
+    public static final boolean     USE_GAMEPLAY_MODE           = true;
     public static final boolean     isTEAM_STORMX               = true;
     public static final boolean     USE_ROTATION_VECTOR         = false;
     public static final boolean     DETECT_CIRCLE               = false;
@@ -56,8 +56,9 @@ public class XConfig
     //Orange: 22.0, 238.6875, 216.015625
     //Green: 104.453125, 252.3125, 120.234375
     //Green Room 1: 93.296875, 255.0, 79.625
+    //Green Room 1 (f): 106.234375, 255.0, 124.484375
 
     public static final double       COLOR_PINK[] = {236.0, 198.53125, 210.15625};
     public static final double       COLOR_ORANGE[] = {22.0, 238.6875, 216.015625};
-    public static final double       COLOR_GREEN[] = {104.453125, 252.3125, 120.234375};
+    public static final double       COLOR_GREEN[] = {106.234375, 255.0, 124.484375};
 }
