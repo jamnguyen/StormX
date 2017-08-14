@@ -5,8 +5,8 @@ public class XConfig
     //System
     public static final boolean     USE_TRANSPOSE_MODE          = true;
     public static final boolean     isTEAM_STORMX               = false;
-    public static final boolean     USE_ROTATION_VECTOR         = false;
-    public static final boolean     USE_GYROSCOPE               = true;
+    public static final boolean     USE_ROTATION_VECTOR         = true;
+    public static final boolean     USE_GYROSCOPE               = !true;
     public static final int     GYROSCOPE_MOMENT_DEFAULT               = 86;//Phone của Tiến
     public static final int     DEGREE_DELTA               = 30;
     public static final int     DEGREE_DELTA_SMALL               = 15;

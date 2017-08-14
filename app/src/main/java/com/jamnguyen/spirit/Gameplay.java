@@ -38,10 +38,16 @@ public class Gameplay
 	private XDetector m_Detector;
     private XBluetooth m_Bluetooth;
 	private XVectorDetection m_VectorDetect = null;
-	private int[] orientations;
+	// private int[] orientations;
+	private float m_DegreeInit = 0;
 	public static final double DEGREE_ESP = 5.0;
 	private int m_SwitchMessage = 0;
 	private int m_ColorMessage = 0;
+	private static boolean m_wasTouchScreen = false;
+	public static void setTouchedScreen(boolean val)
+	{
+		m_wasTouchScreen = val;
+	}
 	public static final int COLOR_ZERO = 0;//Ko nhin thay ball
 	public static final int COLOR_NEAR = 1;//ball o gan, co the lay
 	public static final int COLOR_LEFT = 2;//ball ben trai
@@ -62,6 +68,7 @@ public class Gameplay
 	public static final int STATE_FIND_BALL_LEFT = 10;
 	public static final int STATE_FIND_BALL_RIGHT = 11;
 	public static final int STATE_TEST = 12;//muốn test gì thì test vào đây
+	public static final int STATE_STOP = 13;//muốn test gì thì test vào đây
 	
 	public long m_CurrentTime = 0;
 	public long m_InitTime = 0;
@@ -88,7 +95,7 @@ public class Gameplay
 		if(XConfig.USE_ROTATION_VECTOR)
 		{
 			m_VectorDetect = new XVectorDetection(context);
-			orientations = new int[3];
+			// orientations = new int[3];
 		}
 		if(XConfig.USE_GYROSCOPE)
 		{
@@ -136,10 +143,11 @@ public class Gameplay
 		ANDROID_INITIALIZED = true;
 		if(XConfig.USE_ROTATION_VECTOR)
 		{
-			orientations[0] = (int) m_VectorDetect.getX();
-			orientations[1] = (int)m_VectorDetect.getY();
-			orientations[2] = (int)m_VectorDetect.getZ();
-			Log.d("dung.levan","orientations " + orientations[0] + " - " + orientations[1] + " - " + orientations[2]);
+			m_DegreeInit = m_VectorDetect.getX();
+			// orientations[0] = (int) m_VectorDetect.getX();
+			// orientations[1] = (int)m_VectorDetect.getY();
+			// orientations[2] = (int)m_VectorDetect.getZ();
+			// Log.d("dung.levan","orientations " + orientations[0] + " - " + orientations[1] + " - " + orientations[2]);
 		}
 		if(XConfig.USE_GYROSCOPE)
 		{
@@ -250,6 +258,16 @@ public class Gameplay
 	}
 	public int getCarDegree()
 	{
+		if(XConfig.USE_ROTATION_VECTOR)
+		{
+			//Dương bên phải, âm bên trái
+			float degree = m_Detector.getX() - m_DegreeInit;
+			if(degree > 180.0)
+				degree = (degree - 360.0);
+			else if(degree < -180.0)
+				degree = (360.0 + degree);
+			return degree;
+		}
 		int moment = (m_Gyroscope.getMoment() - m_MomentInit)%m_MomentOfPhone;
 		if(moment > m_MomentOfPhone/2)
 			moment = moment - m_MomentOfPhone;
@@ -486,8 +504,25 @@ public class Gameplay
 			STATE_FIND_GOAL_func();
 			return;
 		}
+		if(m_wasTouchScreen)
+		{
+			if(m_State == STATE_STOP)
+			{
+				Log.d("ANDROID START", "");
+				Switch_State(STATE_INIT);
+			}
+			else
+			{
+				Log.d("ANDROID STOP", "");
+				Switch_State(STATE_STOP);
+			}
+			m_wasTouchScreen = false;
+		}
 		switch(m_State)
 		{
+			case STATE_STOP:
+				Car_Stop();
+				break;
 			case STATE_INIT:
 				STATE_INIT_func();
 			break;
@@ -594,15 +629,15 @@ public class Gameplay
 		sendCommand(MESSEAGE_SERVO1_UP);
 	}
 
-	public static void setAndroidStarted(boolean val)
-	{
-		ANDROID_STARTED = val;
-	}
+	// public static void setAndroidStarted(boolean val)
+	// {
+		// ANDROID_STARTED = val;
+	// }
 
-	public static void setAndroidInitialized(boolean val)
-	{
-		ANDROID_INITIALIZED = val;
-	}
+	// public static void setAndroidInitialized(boolean val)
+	// {
+		// ANDROID_INITIALIZED = val;
+	// }
 
     public float getX() {
 		if(XConfig.USE_ROTATION_VECTOR)

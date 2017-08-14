@@ -329,26 +329,19 @@ public class XDetector
         //------------------------------------------------------------------------------------------
 
 
-        if(!Gameplay.ANDROID_STARTED)
-        {
-            Utils.toastShort("ANDROID STARTED", m_appContext);
-			int tX = getTransposedX((int) event.getY());
-			int tY = getTransposedX((int) event.getX());
-			if(tX > (frameWidth + TOUCH_DELTA) /2 )
-				m_touchDirection = TOUCH_LEFT;
-			else if(tX < (frameWidth - TOUCH_DELTA) /2 )
-				m_touchDirection = TOUCH_RIGHT;
-			else
-				m_touchDirection = TOUCH_CENTER;
-            Gameplay.setAndroidStarted(true);
-            Gameplay.setAndroidInitialized(false);
-        }
-        else
-        {
-            Utils.toastShort("ANDROID STOP", m_appContext);
-            Gameplay.setAndroidStarted(false);
-        }
-
+        // if(!Gameplay.ANDROID_STARTED)
+        // {
+            // Utils.toastShort("ANDROID STARTED", m_appContext);
+			
+            // Gameplay.setAndroidStarted(true);
+            // Gameplay.setAndroidInitialized(false);
+        // }
+        // else
+        // {
+            // Utils.toastShort("ANDROID STOP", m_appContext);
+            // Gameplay.setAndroidStarted(false);
+        // }
+		Gameplay.setTouchedScreen(true);
         touchedRegionRgba.release();
         touchedRegionHsv.release();
     }
