@@ -215,9 +215,19 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
                         //                    if(!XConfig.isTEAM_STORMX)
                         //                        area_ratio = XConfig.SPIRIT_BALL_AREA_RATIO;
                         double distance = m_XDetector.getBallDistance();
-                        if (distance <= XConfig.BALL_CATCH_DISTANCE && m_Game.getState() != Gameplay.STATE_FIND_GOAL && m_Game.getState() != Gameplay.STATE_GO_GOAL)
+                        if (distance <= XConfig.BALL_CATCH_DISTANCE)
                         {
-                            m_Game.SetColorMessage(Gameplay.COLOR_NEAR);
+                            if(m_Game.getState() == Gameplay.STATE_GO_GOAL)
+                            {
+                                if(m_XDetector.getBallRadius() >= XConfig.GOAL_THRESHOLD_RADIUS)
+                                {
+                                    m_Game.SetColorMessage(Gameplay.COLOR_NEAR);
+                                }
+                            }
+                            else
+                            {
+                                m_Game.SetColorMessage(Gameplay.COLOR_NEAR);
+                            }
                         }
                         else
                         {
@@ -254,14 +264,17 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
         }
 
         //Showing statuses
-        Utils.drawString(m_Rgba, "Arduino: " + m_MsgFromArduino, 20, 40);
-        Utils.drawString(m_Rgba, "Command: " + m_XBluetooth.getPrevSentMsg(), 20, 70);
-//        Utils.drawString(m_Rgba, "Is detecting ball: " + m_XDetector.getDetectBall(), 20, 100);
-        Utils.drawString(m_Rgba, "Ball distance: " + m_XDetector.getBallDistance(), 20, 100);
-//        Utils.drawString(m_Rgba, "State: " + m_Game.getState() + " -- TEAM: " + (XConfig.isTEAM_STORMX ? "StormX" : "Spirit"), 20, 130);
-//        Utils.drawString(m_Rgba, "Color state: " + m_Game.getColorMessage(), 20, 130);
-        Utils.drawString(m_Rgba, "Radius: " + m_XDetector.getBallRadius(), 20, 130);
-//        Utils.drawString(m_Rgba, "Color area: " + m_XDetector.getBallArea(), 20, 160);
+        Utils.drawString(m_Rgba, "Arduino:", 550, 40);
+        Utils.drawString(m_Rgba, "" + m_MsgFromArduino, 550, 70);
+        Utils.drawString(m_Rgba, "Command:", 550, 120);
+        Utils.drawString(m_Rgba, "" + m_XBluetooth.getPrevSentMsg(), 550, 150);
+        Utils.drawString(m_Rgba, "State: " + m_Game.getState(), 550, 200);
+        Utils.drawString(m_Rgba, "" + Utils.getStateString(m_Game.getState()), 550, 230);
+        Utils.drawString(m_Rgba, "ColorMsg: " + m_Game.getColorMessage(), 550, 280);
+        Utils.drawString(m_Rgba, "" + Utils.getColorString(m_Game.getColorMessage()), 550, 310);
+        Utils.drawString(m_Rgba, "Detecting ball:", 550, 360);
+        Utils.drawString(m_Rgba, "" + m_XDetector.isDetectBall(), 550, 390);
+
         // Utils.drawString(m_Rgba, "x_org: " + m_Game.getOrientations()[0] + " -- y_org: " +
         //        m_Game.getOrientations()[1] + " -- z_org: " + m_Game.getOrientations()[2], 20, 130);//dung.levan thêm để lấy thông tin
 //        Utils.drawString(m_Rgba, "x: " + (int)m_Game.getX() + " -- y: " + (int)m_Game.getY() + " -- z: " + (int)m_Game.getZ(), 20, 160); //dung.levan thêm để lấy thông tin

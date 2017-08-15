@@ -49,7 +49,7 @@ public class Gameplay
 	public static final int COLOR_RIGHT = 3;//ball ben phai
 	public static final int COLOR_MIDDLE = 4;//ball ben phai
 	public static final int COLOR_TOO_NEAR = 5;//ball qua gan
-	public static final int COLOR_TOO_FAR = 5;//ball qua xa
+	public static final int COLOR_TOO_FAR = 6;//ball qua xa
 
 	private int m_State = 0;
 	private int m_lastState = 0;
@@ -62,6 +62,8 @@ public class Gameplay
 	public static final int STATE_RELEASE_BALL = 6;
 	public static final int STATE_CLEAN_PATH = 7;
 	public static final int STATE_CENTER_BALL = 8;
+	public static final int STATE_WAITING = 9;
+
 	
 	public long m_CurrentTime = 0;
 	public boolean m_isHoldingBall = false;
@@ -107,10 +109,10 @@ public class Gameplay
 	public void Switch_State(int state)
 	{
 		m_Detector.setDetectBall(true);
-		// if(state == STATE_FIND_GOAL || state == STATE_GO_GOAL)
-		// {
-			// m_Detector.setDetectBall(false);
-
+		 if(state == STATE_FIND_GOAL || state == STATE_GO_GOAL)
+		 {
+			 m_Detector.setDetectBall(false);
+		 }
             // //Check if catching ball successful
             // Car_Stop();
             // askHoldingBallStatus();
@@ -167,7 +169,7 @@ public class Gameplay
 	}
 	public void STATE_FIND_BALL_func()
 	{
-		if(m_ColorMessage == COLOR_MIDDLE || m_ColorMessage == COLOR_NEAR)
+		if(m_ColorMessage == COLOR_MIDDLE)
 		{
 			Car_Stop();
 			Switch_State(STATE_FOLLOW_BALL);
@@ -221,7 +223,7 @@ public class Gameplay
 //		Game_Sleep(XConfig.TIME_FOR_SERVO1_UP);
 		Motor_Stop();
 		Servo1_Up();
-		Game_Sleep(XConfig.TIME_FOR_SERVO1_UP);
+		Game_Sleep(XConfig.TIME_FOR_CLEAN_SHORT);
 		Car_Stop();
 
 		askHoldingBallStatus();
@@ -271,7 +273,7 @@ public class Gameplay
 			
 			Car_Backward();
 			Servo1_Up();
-			Game_Sleep(XConfig.TIME_FOR_SERVO1_UP);
+			Game_Sleep(XConfig.TIME_FOR_CLEAN_SHORT);
 			
 			Motor_Stop();		
 
@@ -325,6 +327,10 @@ public class Gameplay
 			{
 				Car_Rotate_Left();
 			}
+			else
+            {
+                Car_Rotate_Left();
+            }
 		}
 		else
 		{
@@ -335,10 +341,10 @@ public class Gameplay
 					Switch_State(STATE_GO_GOAL);
 					break;
 				case COLOR_LEFT:
-					Car_TurnLeft();
+					Car_Rotate_Left();
 					break;
 				case COLOR_RIGHT:
-					Car_TurnRight();
+                    Car_Rotate_Right();
 					break;
 				case COLOR_MIDDLE:
 					Car_Stop();
@@ -419,31 +425,24 @@ public class Gameplay
 //            Game_Sleep(XConfig.TIME_FOR_CLEAN_SHORT);
 //        }
 
-		if(m_Detector.getBallRadius() >= XConfig.GOAL_THRESHOLD_RADIUS)
+		switch (m_ColorMessage)
 		{
-			Car_Forward();
-		}
-		else
-		{
-			switch (m_ColorMessage) {
-				case COLOR_ZERO:// dang follow ball ma bi mat focus
-					Car_Stop();
-					Switch_State(STATE_FIND_GOAL);
-					break;
-				case COLOR_NEAR:
-//				Car_Stop();
-//				Switch_State(STATE_RELEASE_BALL);
-					break;
-				case COLOR_LEFT:
-					Car_TurnLeft();
-					break;
-				case COLOR_RIGHT:
-					Car_TurnRight();
-					break;
-				case COLOR_MIDDLE:
-					Car_Forward();
-					break;
-			}
+			case COLOR_ZERO:// dang follow ball ma bi mat focus
+				Car_Stop();
+				Switch_State(STATE_FIND_GOAL);
+				break;
+			case COLOR_NEAR:
+				Car_Forward();
+				break;
+			case COLOR_LEFT:
+				Car_Rotate_Left();
+				break;
+			case COLOR_RIGHT:
+				Car_Rotate_Right();
+				break;
+			case COLOR_MIDDLE:
+				Car_Forward();
+				break;
 		}
 	}
 	public void STATE_RELEASE_BALL_func() {
@@ -483,7 +482,7 @@ public class Gameplay
 				case STATE_CLEAN_PATH:
 				case STATE_CATCH_BALL:
 					Switch_State(STATE_FIND_GOAL);
-					m_Detector.setDetectBall(false);
+//					m_Detector.setDetectBall(false);
 					break;
 				default:
 					break;
@@ -493,7 +492,7 @@ public class Gameplay
 		if(curr - m_startTime >= XConfig.TIME_OUT)
 		{
 			Switch_State(STATE_FIND_BALL);			
-			m_Detector.setDetectBall(true);
+//			m_Detector.setDetectBall(true);
 		}
 	}
 	
