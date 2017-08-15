@@ -63,6 +63,7 @@ public class Gameplay
 	public static final int STATE_CLEAN_PATH = 7;
 	public static final int STATE_CENTER_BALL = 8;
 	public static final int STATE_WAITING = 9;
+	public static final int STATE_INIT_CHEAT = 10;
 
 	
 	public long m_CurrentTime = 0;
@@ -76,7 +77,7 @@ public class Gameplay
 	
 	private static long m_startTime = 0;
 
-
+	private boolean m_isInitCheated = false;
 	public Gameplay(){
 		m_Bluetooth = null;
 	}
@@ -149,10 +150,59 @@ public class Gameplay
 		{
 			m_DegreeInit = m_VectorDetect.getX();
 		}
-		Switch_State(STATE_FIND_BALL);
+		Car_Forward();
+		Game_Sleep(XConfig.TIME_FOR_CAR_FORWARD_INIT);
+		if(m_isInitCheated)
+		{
+			Switch_State(STATE_FIND_BALL);
+		}
+		else
+		{
+			m_startTime = System.currentTimeMillis();
+			m_isInitCheated = true;
+			Switch_State(STATE_INIT_CHEAT);
+		}
 		//Switch_State(STATE_FOLLOW_BALL);
 //		Switch_State(STATE_FIND_GOAL); // Đang test về khung lưới
 		ANDROID_INITIALIZED = true;
+	}
+	public void STATE_INIT_CHEAT_func()
+	{
+		long curr = System.currentTimeMillis();
+		Motor_Blow_In();
+		Servo1_Down();
+		if(curr - m_startTime > XConfig.TIME_FOR_SERVO1_DOWN_CHEAT)
+		{
+			Servo1_Up();
+			Motor_Stop();
+		}
+		int degree = getCarDegree();
+		if ((m_SwitchMessage & SWITCH_LEFT) != 0 && (m_SwitchMessage & SWITCH_RIGHT) != 0)//Đụng cả 2 công tắc
+		{
+			Motor_Blow_Out();
+			Car_Stop();
+		}
+		else if ((m_SwitchMessage & SWITCH_LEFT) != 0 || (m_SwitchMessage & SWITCH_RIGHT) != 0)//Đụng 1 trong 2 công tắc thì chạy lùi lại
+		{
+			Car_Forward();
+			Servo1_Down();
+		}
+		else//ko đụng công tắc nào
+		{
+			if(degree > XConfig.DEGREE_DELTA_SMALL)
+				Car_TurnLeft();
+			else if(degree < -XConfig.DEGREE_DELTA_SMALL)
+				Car_TurnRight();
+			else
+				Car_Forward();
+		}
+		if(curr - m_startTime > XConfig.TIME_FOR_INIT_CHEAT)
+		{
+			Servo1_Up();
+			Car_Backward();
+			Game_Sleep(XConfig.TIME_FOR_CAR_BACKWARD);
+			Switch_State(STATE_FIND_BALL);
+		}
 	}
 	public void Game_Sleep(long time)
     {
@@ -171,7 +221,7 @@ public class Gameplay
 	{
 		if(m_ColorMessage == COLOR_MIDDLE)
 		{
-			Car_Stop();
+			// Car_Stop();
 			Switch_State(STATE_FOLLOW_BALL);
 		}
 		else
@@ -191,7 +241,7 @@ public class Gameplay
 		switch(m_ColorMessage)
 		{
 			case COLOR_ZERO:// dang follow ball ma bi mat focus 
-			Car_Stop();
+			// Car_Stop();
 			Switch_State(STATE_FIND_BALL);
 			break;
 			case COLOR_NEAR:
@@ -506,6 +556,9 @@ public class Gameplay
 		{
 			case STATE_INIT:
 				STATE_INIT_func();
+			break;
+			case STATE_INIT_CHEAT:
+				STATE_INIT_CHEAT_func();
 			break;
 			case STATE_FIND_BALL:
 				STATE_FIND_BALL_func();
