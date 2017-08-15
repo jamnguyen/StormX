@@ -368,12 +368,16 @@ public class Gameplay
 			return (int)degree;
 		}
 		//dùng con quay
-		int moment = (m_Gyroscope.getMoment() - m_MomentInit)%m_MomentOfPhone;
-		if(moment > m_MomentOfPhone/2)
-			moment = moment - m_MomentOfPhone;
-		else if(moment < -m_MomentOfPhone/2)
-			moment = moment + m_MomentOfPhone;
-		return (int)((double)moment*360.0/(double)m_MomentOfPhone);
+		if(XConfig.USE_GYROSCOPE)
+		{
+		// int moment = (m_Gyroscope.getMoment() - m_MomentInit)%m_MomentOfPhone;
+		// if(moment > m_MomentOfPhone/2)
+			// moment = moment - m_MomentOfPhone;
+		// else if(moment < -m_MomentOfPhone/2)
+			// moment = moment + m_MomentOfPhone;
+		// return (int)((double)moment*360.0/(double)m_MomentOfPhone);
+		}
+		return 0;
 	}
 	public void STATE_GO_GOAL_func()
 	{
