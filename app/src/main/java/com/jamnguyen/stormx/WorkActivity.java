@@ -278,7 +278,7 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
         // Utils.drawString(m_Rgba, "x_org: " + m_Game.getOrientations()[0] + " -- y_org: " +
         //        m_Game.getOrientations()[1] + " -- z_org: " + m_Game.getOrientations()[2], 20, 130);//dung.levan thêm để lấy thông tin
 //        Utils.drawString(m_Rgba, "x: " + (int)m_Game.getX() + " -- y: " + (int)m_Game.getY() + " -- z: " + (int)m_Game.getZ(), 20, 160); //dung.levan thêm để lấy thông tin
-        if(XConfig.USE_GYROSCOPE)
+        if(XConfig.USE_GYROSCOPE || XConfig.USE_ROTATION_VECTOR)
         {
             Utils.drawString(m_Rgba, m_Game.getGyroscopeInfo(),20,200);
         }

@@ -668,8 +668,8 @@ public class Gameplay
 	}
 	
     public String getGyroscopeInfo () {
-		if (m_Gyroscope != null)
-			return "Pos: " + m_Gyroscope.getCurrentDirection() + " | Degree: " + m_Gyroscope.getCurrentDegree();
+		if (m_Gyroscope != null || m_VectorDetect != null)
+			return "Degree: " + getCarDegree();
 		return "Gyroscope";
 	}
 
