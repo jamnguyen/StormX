@@ -38,6 +38,7 @@ public class Gameplay
 	private XDetector m_Detector;
     private XBluetooth m_Bluetooth;
 	private XVectorDetection m_VectorDetect = null;
+	private float m_DegreeInit = 0;
 	private int[] orientations;
 	public static final double DEGREE_ESP = 5.0;
 	private int m_SwitchMessage = 0;
@@ -144,10 +145,7 @@ public class Gameplay
         Log.d("dung.levan","STATE_INIT_func");
 		if(XConfig.USE_ROTATION_VECTOR)
 		{
-			orientations[0] = (int) m_VectorDetect.getX();
-			orientations[1] = (int)m_VectorDetect.getY();
-			orientations[2] = (int)m_VectorDetect.getZ();
-			Log.d("dung.levan","orientations " + orientations[0] + " - " + orientations[1] + " - " + orientations[2]);
+			m_DegreeInit = m_VectorDetect.getX();
 		}
 		Switch_State(STATE_FIND_BALL);
 		//Switch_State(STATE_FOLLOW_BALL);
@@ -297,24 +295,25 @@ public class Gameplay
 
 	public void STATE_FIND_GOAL_func()
 	{
-        /*m_BallCount = 0;
-		 Log.d("dung.levan","STATE_GO_GOAL_func orientations " + orientations[0] + " - " + orientations[1] + " - " + orientations[2]);
-         Log.d("dung.levan","STATE_GO_GOAL_func orientations " + m_VectorDetect.getX() + " - " + m_VectorDetect.getY() + " - " + m_VectorDetect.getZ());
-        if (m_VectorDetect.getX() < orientations[0] - ANGLE_DIFF ){ //ANGLE_DIFF: góc lệch, hằng số
-             Log.d("dung.levan","right");
-             Car_Rotate_Right(); // Xoay xe qua phải
-        } else if (m_VectorDetect.getX() > orientations[0] + ANGLE_DIFF) {
-             Log.d("dung.levan","left");
-             Car_Rotate_Left(); // Xoay xe qua trái
-        } 
-		else
-        {
-             Log.d("dung.levan","forward");//Đã xoay đúng hướng chuyển qua STATE_GO_GOAL
-			 Car_Stop();
-			 // Car_Forward(); // NOTE: Xe chạy thẳng về khung, khi đụng vật cản mới chuyển state.
-			 				// Xin đừng chuyển state quá sớm, xe mất khả năng tự chỉnh góc.
-			Switch_State(STATE_GO_GOAL);//qua STATE_GO_GOAL mới chạy thẳng
-        }*/
+        if(XConfig.USE_GYROSCOPE || XConfig.USE_ROTATION_VECTOR)
+		{
+			int degree = getCarDegree();
+			if ((m_SwitchMessage & SWITCH_LEFT) != 0 || (m_SwitchMessage & SWITCH_RIGHT) != 0)//Đụng 1 trong 2 công tắc thì chạy lùi lại
+			{
+				Car_Backward();
+				Game_Sleep(XConfig.TIME_FOR_CAR_BACKWARD);
+			}
+			else//ko đụng cái nào
+			{
+				if(degree > XConfig.DEGREE_DELTA)
+					Car_Rotate_Left();
+				else if(degree < - XConfig.DEGREE_DELTA)
+					Car_Rotate_Right();
+				else
+					Switch_State(STATE_GO_GOAL);
+			}
+			return;
+		}
 
 		if(m_ColorMessage == COLOR_ZERO)
 		{
@@ -350,40 +349,67 @@ public class Gameplay
 			// Switch_State(STATE_GO_GOAL);
 		}
 	}
+	public int getCarDegree()
+	{
+		if(XConfig.USE_ROTATION_VECTOR)
+		{
+			//Dương bên phải, âm bên trái
+			double degree = m_VectorDetect.getX() - m_DegreeInit;
+			if(degree > 180.0)
+				degree = (degree - 360.0);
+			else if(degree < -180.0)
+				degree = (360.0 + degree);
+			return (int)degree;
+		}
+		//dùng con quay
+		int moment = (m_Gyroscope.getMoment() - m_MomentInit)%m_MomentOfPhone;
+		if(moment > m_MomentOfPhone/2)
+			moment = moment - m_MomentOfPhone;
+		else if(moment < -m_MomentOfPhone/2)
+			moment = moment + m_MomentOfPhone;
+		return (int)((double)moment*360.0/(double)m_MomentOfPhone);
+	}
 	public void STATE_GO_GOAL_func()
 	{
-		if (((m_SwitchMessage & (SWITCH_LEFT | SWITCH_RIGHT)) != 0))
+		if(XConfig.USE_GYROSCOPE || XConfig.USE_ROTATION_VECTOR)
 		{
-			Switch_State(STATE_RELEASE_BALL);
-		}
-
-		if (XConfig.USE_ROTATION_VECTOR)
-		{
-			if (m_ColorMessage == COLOR_NEAR) {
-				//xe gần Goal nhưng góc lệch quá nhiều phải xoay lại
-				if (m_VectorDetect.getX() < orientations[0] - ANGLE_DIFF) { //ANGLE_DIFF: góc lệch, hằng số
-					Log.d("dung.levan", "right");
-					Car_Rotate_Right(); // Xoay xe qua phải
-				} else if (m_VectorDetect.getX() > orientations[0] + ANGLE_DIFF) {
-					Log.d("dung.levan", "left");
-					Car_Rotate_Left(); // Xoay xe qua trái
-				} else//xe gần Goal và đã đúng góc chuyển state nhả banh
+			int degree = getCarDegree();
+			if(degree > XConfig.DEGREE_DELTA || degree < - XConfig.DEGREE_DELTA)//xe lệch quá nhiều
+			{
+				Switch_State(STATE_FIND_GOAL);
+				return;
+			}
+			else if(degree >= - XConfig.DEGREE_DELTA_SMALL && degree <= XConfig.DEGREE_DELTA_SMALL )//xe đã đúng hướng
+			{
+				if (((m_SwitchMessage & (SWITCH_LEFT | SWITCH_RIGHT)) != 0))//Đụng cả 2 công tắc thì chuyển state nhả bóng
 				{
 					Car_Stop();
 					Switch_State(STATE_RELEASE_BALL);
 					return;
 				}
-			} else {
-				//Xe vừa chạy vừa điều chỉnh khi chạy về goal
-				if (m_VectorDetect.getX() < orientations[0] - ANGLE_DIFF_SMALL) {
-					Car_TurnRight();
-				} else if (m_VectorDetect.getX() > orientations[0] + ANGLE_DIFF_SMALL) {
-					Car_TurnLeft();
-				} else {
+				else if ((m_SwitchMessage & SWITCH_LEFT) != 0 || (m_SwitchMessage & SWITCH_RIGHT) != 0)//Đụng 1 trong 2 công tắc thì chạy chậm
+					Car_Forward_Slow();
+				else//ko đụng công tắc nào
+				{
 					Car_Forward();
 				}
 			}
+			else //xe hơi lệch
+			{
+				if(degree > XConfig.DEGREE_DELTA_SMALL)//hơi lệch bên phải thì quẹo trái
+					Car_TurnLeft();
+				else //hơi lệch bên trái thì quẹo phải
+					Car_TurnRight();
+			}
+			return;
 		}
+		//ko dùng vector
+		if (((m_SwitchMessage & (SWITCH_LEFT | SWITCH_RIGHT)) != 0))
+		{
+			Switch_State(STATE_RELEASE_BALL);
+		}
+
+		
 
 //		Car_Forward();
 
@@ -538,6 +564,10 @@ public class Gameplay
 	public void Car_Forward()
 	{
 		sendCommnand(MESSEAGE_FORWARDFAST);
+	}
+	public void Car_Forward_Slow()
+	{
+		sendCommnand(MESSEAGE_FORWARDSLOW);
 	}
 	public void Car_Backward()
 	{

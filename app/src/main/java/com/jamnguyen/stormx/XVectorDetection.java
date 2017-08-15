@@ -43,9 +43,9 @@ public class XVectorDetection{
                  for (int i = 0; i < 3; i++) {
                      orientations[i] = (float) (Math.toDegrees(orientations[i])); // Góc -180, 0, 180 độ
                  }
-                 x = (int)orientations[0] + 180;// Lấy góc 360 độ
-                 y = (int)orientations[1] + 180;// Lấy góc 360 độ
-                 z = (int)orientations[2] + 180;// Lấy góc 360 độ
+                 x = orientations[0];// Lấy góc 360 độ
+                 y = orientations[1];// Lấy góc 360 độ
+                 z = orientations[2];// Lấy góc 360 độ
 
             }
 

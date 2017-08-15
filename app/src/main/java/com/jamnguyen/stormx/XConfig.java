@@ -12,6 +12,9 @@ public class XConfig
     public static final boolean     DETECT_COLOR_WITH_CIRCLE    = true;
 
     //Value
+	public static final int     DEGREE_DELTA               = 40;
+    public static final int     DEGREE_DELTA_SMALL               = 20;
+	
     public static final int TIME_FOR_BLOW_OUT                   = 1200;
     public static final int TIME_FOR_BLOW_IN                    = 1500;
     public static final int TIME_FOR_SERVO1_UP                  = 200;
