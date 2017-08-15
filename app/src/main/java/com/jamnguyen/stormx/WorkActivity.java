@@ -185,19 +185,27 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
                 //Get color or Gameplay mode
                 if(XConfig.USE_GAMEPLAY_MODE)
                 {
-                    int n_MsgFromArduino = Integer.parseInt(m_MsgFromArduino);
-                    m_Game.SetSwitchMessage(n_MsgFromArduino);
-
                     //Ball status message
-                    if(n_MsgFromArduino == Gameplay.MESSAGE_NOBALL)
-                    {
-                        m_Game.setHoldingBallStatus(false);
-                    }
-                    else
+                    if(m_MsgFromArduino.equals(Gameplay.MESSAGE_HAVEBALL))
                     {
                         m_Game.setHoldingBallStatus(true);
                     }
-
+                    // else
+                    // {
+                        // m_Game.setHoldingBallStatus(false);
+                    // }
+					
+					//Avoid crash
+					try
+					{
+						int n_MsgFromArduino = Integer.parseInt(m_MsgFromArduino);
+						m_Game.SetSwitchMessage(n_MsgFromArduino);
+					}
+					catch(NumberFormatException e)
+					{
+						;
+					}
+					
                     if (!m_XDetector.isBallOnScreen()) {
                         m_Game.SetColorMessage(Gameplay.COLOR_ZERO);
                     } else {

@@ -149,22 +149,22 @@ void loop() {
         _motor_right.setMotorSpeed(-MOTOR_SPEED_MIN);
         break;
       case MESSEAGE_ROTATELEFT:
-        Log("MESSEAGE_TURNLEFT");
+        Log("MESSEAGE_ROTATELEFT");
         _motor_left.setMotorSpeed(-MOTOR_SPEED_ROTATE);
         _motor_right.setMotorSpeed(MOTOR_SPEED_ROTATE);
         break;
       case MESSEAGE_TURNLEFT :
-        Log("MESSEAGE_RUNLEFT");
+        Log("MESSEAGE_TURNLEFT");
         _motor_left.setMotorSpeed(MOTOR_SPEED_ROTATE_MIN);
         _motor_right.setMotorSpeed(MOTOR_SPEED_ROTATE_MAX);
         break;
       case MESSEAGE_ROTATERIGHT :
-        Log("MESSEAGE_TURNRIGHT");
+        Log("MESSEAGE_ROTATERIGHT");
         _motor_left.setMotorSpeed(MOTOR_SPEED_ROTATE);
         _motor_right.setMotorSpeed(-MOTOR_SPEED_ROTATE);
         break;
       case MESSEAGE_TURNRIGHT:
-        Log("MESSEAGE_RUNRIGHT");
+        Log("MESSEAGE_TURNRIGHT");
         _motor_left.setMotorSpeed(MOTOR_SPEED_ROTATE_MAX);
         _motor_right.setMotorSpeed(MOTOR_SPEED_ROTATE_MIN);
         break;

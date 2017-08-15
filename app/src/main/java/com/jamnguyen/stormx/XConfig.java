@@ -20,6 +20,8 @@ public class XConfig
     public static final int TIME_FOR_ASK                        = 200;
     public static final int TIME_FOR_CLEAN_LONG                 = 500;
     public static final int TIME_FOR_CLEAN_SHORT                = 400;
+	
+    public static final int TIME_OUT                			= 400;
     //Spirit
     public static final int SPIRIT_TIME_FRONT                   = 1000;
     public static final int SPIRIT_TIME_THROW                   = 1000;
