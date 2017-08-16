@@ -24,7 +24,7 @@ public class XConfig
     public static final int TIME_FOR_CLEAN_LONG                 = 500;
     public static final int TIME_FOR_CLEAN_SHORT                = 400;
     public static final int TIME_FOR_CAR_FORWARD_INIT                = 50;
-    public static final int TIME_FOR_SERVO1_DOWN_CHEAT                = 100;
+    public static final int TIME_FOR_SERVO1_DOWN_CHEAT                = 200;
     public static final int TIME_FOR_INIT_CHEAT                = 5*1000;
 	
     public static final int TIME_OUT                			= 400;
@@ -38,7 +38,7 @@ public class XConfig
     public static final double      GOAL_AREA_RATIO             = 0.20;
     public static final double      MISS_DETECT_RATIO           = 0.75;     //In case 2 balls lying closely
     public static final double      MIDDLE_DELTA                = 40;
-    public static final int         MIDDLE_OFFSET               = 0;//Camera giữa //55;//Camera lệch //XPERIA XA
+    public static final int         MIDDLE_OFFSET               = 55;//0;//Camera giữa //55;//Camera lệch //XPERIA XA
     public static final double      XA_DISTANCE_FACTOR          = 3300;
     public static final double      BALL_CATCH_DISTANCE         = 28;
     public static final double      BALL_CATCH_DISTANCE_DELTA   = 0;

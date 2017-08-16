@@ -51,8 +51,8 @@ public class Gameplay
 	public static final int COLOR_TOO_NEAR = 5;//ball qua gan
 	public static final int COLOR_TOO_FAR = 6;//ball qua xa
 
-	private int m_State = 0;
-	private int m_lastState = 0;
+	private int m_State = -1;
+	private int m_lastState = -1;
 	public static final int STATE_INIT = 0;
 	public static final int STATE_FIND_BALL = 1;//xoay tim ball cho den khi nao thay ball se dung
 	public static final int STATE_FOLLOW_BALL = 2;//
@@ -150,17 +150,23 @@ public class Gameplay
 		{
 			m_DegreeInit = m_VectorDetect.getX();
 		}
-		Car_Forward();
-		Game_Sleep(XConfig.TIME_FOR_CAR_FORWARD_INIT);
-		if(m_isInitCheated)
+		
+		if(ANDROID_INITIALIZED)
 		{
-			Switch_State(STATE_FIND_BALL);
-		}
-		else
-		{
-			m_startTime = System.currentTimeMillis();
-			m_isInitCheated = true;
-			Switch_State(STATE_INIT_CHEAT);
+			Car_Forward();
+			Game_Sleep(XConfig.TIME_FOR_CAR_FORWARD_INIT);
+			if(m_isInitCheated)
+			{
+				Switch_State(STATE_FIND_BALL);
+			}
+			else
+			{
+				m_startTime = System.currentTimeMillis();
+				m_isInitCheated = true;
+				Motor_Blow_In();
+				Servo1_Down();
+				Switch_State(STATE_INIT_CHEAT);
+			}
 		}
 		//Switch_State(STATE_FOLLOW_BALL);
 //		Switch_State(STATE_FIND_GOAL); // Đang test về khung lưới
@@ -169,17 +175,15 @@ public class Gameplay
 	public void STATE_INIT_CHEAT_func()
 	{
 		long curr = System.currentTimeMillis();
-		Motor_Blow_In();
-		Servo1_Down();
 		if(curr - m_startTime > XConfig.TIME_FOR_SERVO1_DOWN_CHEAT)
 		{
-			Servo1_Up();
 			Motor_Stop();
+			Servo1_Up();
 		}
-		int degree = getCarDegree();
 		if ((m_SwitchMessage & SWITCH_LEFT) != 0 && (m_SwitchMessage & SWITCH_RIGHT) != 0)//Đụng cả 2 công tắc
 		{
 			Motor_Blow_Out();
+			Servo1_Down();
 			Car_Stop();
 		}
 		else if ((m_SwitchMessage & SWITCH_LEFT) != 0 || (m_SwitchMessage & SWITCH_RIGHT) != 0)//Đụng 1 trong 2 công tắc thì chạy lùi lại
@@ -189,6 +193,7 @@ public class Gameplay
 		}
 		else//ko đụng công tắc nào
 		{
+			int degree = getCarDegree();
 			if(degree > XConfig.DEGREE_DELTA_SMALL)
 				Car_TurnLeft();
 			else if(degree < -XConfig.DEGREE_DELTA_SMALL)

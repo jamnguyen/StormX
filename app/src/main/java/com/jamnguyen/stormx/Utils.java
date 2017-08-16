@@ -57,6 +57,8 @@ public class Utils
         {
             case STATE_INIT:
                 return "INIT";
+			case STATE_INIT_CHEAT:
+                return "INIT_CHEAT";
             case STATE_FIND_BALL:
                 return "FIND_BALL";
             case STATE_FOLLOW_BALL:
