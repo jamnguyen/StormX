@@ -66,7 +66,12 @@ public class XConfig
     //Green Room 1: 93.296875, 255.0, 79.625
     //Green Room 1 (f): 106.234375, 255.0, 124.484375
 
-    public static final double       COLOR_PINK[] = {230.03125, 196.640625, 222.53125};
-    public static final double       COLOR_ORANGE[] = {16.0, 251.09375, 215.234375};
-    public static final double       COLOR_GREEN[] = {102.6875, 209.203125, 118.28125};
+    //LG
+    //Pink: 243.859375, 204.203125, 212.46875
+    //Orange: 19.1875, 249.015625, 226.609375
+    //Green: 94.28125, 204.96875, 140.515625
+
+    public static final double       COLOR_PINK[] = {243.859375, 204.203125, 212.46875};
+    public static final double       COLOR_ORANGE[] = {19.1875, 249.015625, 226.609375};
+    public static final double       COLOR_GREEN[] = {94.28125, 204.96875, 140.515625};
 }
