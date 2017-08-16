@@ -180,15 +180,9 @@ public class Gameplay
 			Motor_Stop();
 			Servo1_Up();
 		}
-		if ((m_SwitchMessage & SWITCH_LEFT) != 0 && (m_SwitchMessage & SWITCH_RIGHT) != 0)//Đụng cả 2 công tắc
+		if ((m_SwitchMessage & SWITCH_LEFT) != 0 || (m_SwitchMessage & SWITCH_RIGHT) != 0)//Đụng 1 trong 2 công tắc thì chạy tới
 		{
 			Motor_Blow_Out();
-			Servo1_Down();
-			Car_Stop();
-		}
-		else if ((m_SwitchMessage & SWITCH_LEFT) != 0 || (m_SwitchMessage & SWITCH_RIGHT) != 0)//Đụng 1 trong 2 công tắc thì chạy lùi lại
-		{
-			Car_Forward();
 			Servo1_Down();
 		}
 		else//ko đụng công tắc nào
@@ -200,6 +194,11 @@ public class Gameplay
 				Car_TurnRight();
 			else
 				Car_Forward();
+		}
+		if(curr - m_startTime > XConfig.TIME_FOR_INIT_CHEAT_BLOW_IN)
+		{
+			Motor_Stop();
+			Car_Stop();
 		}
 		if(curr - m_startTime > XConfig.TIME_FOR_INIT_CHEAT)
 		{

@@ -24,8 +24,9 @@ public class XConfig
     public static final int TIME_FOR_CLEAN_LONG                 = 500;
     public static final int TIME_FOR_CLEAN_SHORT                = 400;
     public static final int TIME_FOR_CAR_FORWARD_INIT                = 50;
-    public static final int TIME_FOR_SERVO1_DOWN_CHEAT                = 200;
-    public static final int TIME_FOR_INIT_CHEAT                = 5*1000;
+    public static final int TIME_FOR_SERVO1_DOWN_CHEAT                = 2*1000;
+    public static final int TIME_FOR_INIT_CHEAT_BLOW_IN                = 5*1000;
+    public static final int TIME_FOR_INIT_CHEAT                = 7*1000;
 	
     public static final int TIME_OUT                			= 400;
     //Spirit
@@ -40,7 +41,7 @@ public class XConfig
     public static final double      MIDDLE_DELTA                = 40;
     public static final int         MIDDLE_OFFSET               = 55;//0;//Camera giữa //55;//Camera lệch //XPERIA XA
     public static final double      XA_DISTANCE_FACTOR          = 3300;
-    public static final double      BALL_CATCH_DISTANCE         = 28;
+    public static final double      BALL_CATCH_DISTANCE         = 23;
     public static final double      BALL_CATCH_DISTANCE_DELTA   = 0;
     public static final double      GOAL_THRESHOLD_RADIUS       = 250;
 
@@ -71,7 +72,7 @@ public class XConfig
     //Orange: 19.1875, 249.015625, 226.609375
     //Green: 94.28125, 204.96875, 140.515625
 
-    public static final double       COLOR_PINK[] = {243.859375, 204.203125, 212.46875};
-    public static final double       COLOR_ORANGE[] = {19.1875, 249.015625, 226.609375};
-    public static final double       COLOR_GREEN[] = {94.28125, 204.96875, 140.515625};
+    public static final double       COLOR_PINK[] = {230.03125, 196.640625, 222.53125};
+    public static final double       COLOR_ORANGE[] = {16.0, 251.09375, 215.234375};
+    public static final double       COLOR_GREEN[] = {102.6875, 209.203125, 118.28125};
 }
