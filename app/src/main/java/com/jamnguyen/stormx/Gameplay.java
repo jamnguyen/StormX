@@ -273,21 +273,13 @@ public class Gameplay
 		Game_Sleep(XConfig.TIME_FOR_SERVO1_UP);
 		Car_Forward();
 		Game_Sleep(XConfig.TIME_FOR_CLEAN_LONG);
-//		Car_Backward();
-//		Game_Sleep(XConfig.TIME_FOR_SERVO1_UP);
-		Motor_Stop();
+		Car_Backward();
 		Servo1_Up();
 		Game_Sleep(XConfig.TIME_FOR_CLEAN_SHORT);
+		Motor_Stop();
 		Car_Stop();
 
 		askHoldingBallStatus();
-		// Game_Sleep(XConfig.TIME_FOR_ASK);
-
-		// if(m_isHoldingBall)
-			// Switch_State(STATE_FIND_GOAL);
-		// else
-        	// Switch_State(STATE_FOLLOW_BALL);
-		
 		Switch_State(STATE_WAITING);
     }
 	public void STATE_CENTER_BALL_func()
