@@ -184,6 +184,7 @@ public class Gameplay
 		{
 			Motor_Blow_Out();
 			Servo1_Down();
+			Car_Forward();
 		}
 		else//ko đụng công tắc nào
 		{
@@ -223,7 +224,7 @@ public class Gameplay
 	}
 	public void STATE_FIND_BALL_func()
 	{
-		if(m_ColorMessage == COLOR_MIDDLE)
+		if(m_ColorMessage == COLOR_MIDDLE || m_ColorMessage == COLOR_NEAR)
 		{
 			// Car_Stop();
 			Switch_State(STATE_FOLLOW_BALL);
@@ -271,8 +272,10 @@ public class Gameplay
 		Motor_Blow_In();
 		Servo1_Down();
 		Game_Sleep(XConfig.TIME_FOR_SERVO1_UP);
+		
 		Car_Forward();
 		Game_Sleep(XConfig.TIME_FOR_CLEAN_LONG);
+		
 		Car_Backward();
 		Servo1_Up();
 		Game_Sleep(XConfig.TIME_FOR_CLEAN_SHORT);
@@ -382,8 +385,9 @@ public class Gameplay
 		{
 			switch (m_ColorMessage)
 			{
+				case COLOR_MIDDLE:
 				case COLOR_NEAR:
-					Car_Stop();
+					// Car_Stop();
 					Switch_State(STATE_GO_GOAL);
 					break;
 				case COLOR_LEFT:
@@ -392,10 +396,10 @@ public class Gameplay
 				case COLOR_RIGHT:
                     Car_Rotate_Right();
 					break;
-				case COLOR_MIDDLE:
-					Car_Stop();
-					Switch_State(STATE_GO_GOAL);
-					break;
+				// case COLOR_MIDDLE:
+					// Car_Stop();
+					// Switch_State(STATE_GO_GOAL);
+					// break;
 			}
 			// Car_Stop();
 			// Switch_State(STATE_GO_GOAL);
