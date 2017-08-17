@@ -38,11 +38,12 @@ public class XConfig
     public static final double      SPIRIT_BALL_AREA_RATIO      = 0.78;
     public static final double      GOAL_AREA_RATIO             = 0.20;
     public static final double      MISS_DETECT_RATIO           = 0.75;     //In case 2 balls lying closely
-    public static final double      MIDDLE_DELTA                = 40;
+    public static final double      MIDDLE_DELTA                = 80;
     public static final int         MIDDLE_OFFSET               = 55;//0;//Camera giữa //55;//Camera lệch //XPERIA XA
     public static final double      XA_DISTANCE_FACTOR          = 3300;
     public static final double      MI2_DISTANCE_FACTOR         = 8063;
-    public static final double      BALL_CATCH_DISTANCE         = 23;
+    public static final double      Z_DISTANCE_FACTOR           = 5800;
+    public static final double      BALL_CATCH_DISTANCE         = 25;
     public static final double      BALL_CATCH_DISTANCE_DELTA   = 0;
     public static final double      GOAL_THRESHOLD_RADIUS       = 250;
 
@@ -65,15 +66,22 @@ public class XConfig
     //Pink: 230.03125, 196.640625, 222.53125
     //Orange: 16.0, 251.09375, 215.234375
     //Green: 102.6875, 209.203125, 118.28125
-    //Green Room 1: 93.296875, 255.0, 79.625
-    //Green Room 1 (f): 106.234375, 255.0, 124.484375
+    //XA Battlefield
+    //Pink: 236.0, 228.140625, 238.78125
+    //Orange: 11.453125, 255.0, 228.859375
+    //Green: 103.859375, 252.078125, 115.890625
 
     //LG
     //Pink: 243.859375, 204.203125, 212.46875
     //Orange: 19.1875, 249.015625, 226.609375
     //Green: 94.28125, 204.96875, 140.515625
 
-    public static final double       COLOR_PINK[] = {230.03125, 196.640625, 222.53125};
-    public static final double       COLOR_ORANGE[] = {16.0, 251.09375, 215.234375};
-    public static final double       COLOR_GREEN[] = {102.6875, 209.203125, 118.28125};
+    //Mi2
+    //Pink: 231.234375, 155.796875, 255.0
+    //Orange: 16.0, 251.78125, 255.0
+    //Green: 90.0, 200.796875, 104.90625
+
+    public static final double       COLOR_PINK[] = {236.0, 228.140625, 238.78125};
+    public static final double       COLOR_ORANGE[] = {11.453125, 255.0, 228.859375};
+    public static final double       COLOR_GREEN[] = {103.859375, 252.078125, 115.890625};
 }
