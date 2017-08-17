@@ -41,6 +41,7 @@ public class XConfig
     public static final double      MIDDLE_DELTA                = 40;
     public static final int         MIDDLE_OFFSET               = 55;//0;//Camera giữa //55;//Camera lệch //XPERIA XA
     public static final double      XA_DISTANCE_FACTOR          = 3300;
+    public static final double      MI2_DISTANCE_FACTOR         = 8063;
     public static final double      BALL_CATCH_DISTANCE         = 23;
     public static final double      BALL_CATCH_DISTANCE_DELTA   = 0;
     public static final double      GOAL_THRESHOLD_RADIUS       = 250;

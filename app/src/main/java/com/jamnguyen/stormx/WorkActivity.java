@@ -272,8 +272,10 @@ public class WorkActivity extends Activity implements View.OnTouchListener, CvCa
         Utils.drawString(m_Rgba, "" + Utils.getStateString(m_Game.getState()), 550, 230);
         Utils.drawString(m_Rgba, "ColorMsg: " + m_Game.getColorMessage(), 550, 280);
         Utils.drawString(m_Rgba, "" + Utils.getColorString(m_Game.getColorMessage()), 550, 310);
-        Utils.drawString(m_Rgba, "Detecting ball:", 550, 360);
-        Utils.drawString(m_Rgba, "" + m_XDetector.isDetectBall(), 550, 390);
+//        Utils.drawString(m_Rgba, "Detecting ball:", 550, 360);
+//        Utils.drawString(m_Rgba, "" + m_XDetector.isDetectBall(), 550, 390);
+        Utils.drawString(m_Rgba, "Distance:", 550, 360);
+        Utils.drawString(m_Rgba, "" + m_XDetector.getBallDistance(), 550, 390);
 
         // Utils.drawString(m_Rgba, "x_org: " + m_Game.getOrientations()[0] + " -- y_org: " +
         //        m_Game.getOrientations()[1] + " -- z_org: " + m_Game.getOrientations()[2], 20, 130);//dung.levan thêm để lấy thông tin

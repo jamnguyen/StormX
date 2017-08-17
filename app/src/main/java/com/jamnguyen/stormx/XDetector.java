@@ -422,7 +422,8 @@ public class XDetector
     public double getBallDistance()
     {
         if(m_ballRadius > 0)
-            return XConfig.XA_DISTANCE_FACTOR / m_ballRadius;
+//            return XConfig.XA_DISTANCE_FACTOR / m_ballRadius;
+            return XConfig.MI2_DISTANCE_FACTOR / m_ballRadius;
         else
             return -1;
     }
